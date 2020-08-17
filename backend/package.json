@@ -1,0 +1,43 @@
+{
+  "name": "react-backend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "async": "2.6.1",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "~1.4.3",
+    "cors": "2.8.4",
+    "debug": "~2.6.9",
+    "dotenv": "^8.2.0",
+    "express": "~4.16.0",
+    "express-form-data": "^2.0.10",
+    "express-http-proxy": "^1.6.0",
+    "fabric-ca-client": "1.2.0",
+    "fabric-client": "1.2.0",
+    "ffprobe-static": "^3.0.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "grpc": "1.11.0",
+    "http-errors": "~1.6.2",
+    "jade": "~1.11.0",
+    "jsmpeg": "^1.0.0",
+    "morgan": "~1.9.0",
+    "multer": "^1.4.2",
+    "node-fetch": "^2.6.0",
+    "node-rtsp-stream": "0.0.9",
+    "nopt": "^4.0.1",
+    "remote-ffprobe": "^4.0.0",
+    "underscore": "x.x.x",
+    "url": "^0.11.0",
+    "uuid": "^7.0.3",
+    "vuetify": "^2.1.10",
+    "websocket-stream": "^5.5.2",
+    "youtube-stream-url": "^2.0.1",
+    "ytdl-core": "^3.2.0"
+  },
+  "devDependencies": {
+    "vue-card": "^1.1.0"
+  }
+}
