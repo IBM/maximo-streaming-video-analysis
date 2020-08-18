@@ -20,6 +20,7 @@
 
       </div>
     </div>
+
     <!-- document.getElementById('testimg').src = document.getElementById('stream_canvas').getContext("webgl", {preserveDrawingBuffer: true}).canvas.toDataURL("image/png")  -->
     <!--
          var context = document.getElementById('stream_canvas').getContext("2d").drawImage(this.video, 0, 0, 960, 480)
@@ -37,23 +38,30 @@
         -->
 
 
-    <div style="float:left;margin-bottom:50px;width:50%" id="camera_container">
+    <div style="float:left;margin-bottom:50px; width:50%" id="camera_container">
 
       <!-- <div><video style="border:dotted" src="ws://localhost:9999" width="640" height="480" autoplay></video></div> -->
       <!-- <template v-if="isStreaming"> -->
-        <div >
 
-          <video muted style="z-index: 2000;position: absolute ; left: 1%; top:10%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
+        <div style="float:center">
+
+          <!-- <video muted style="z-index: 2000;position: absolute ; left: 1%; top:10%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
           <video muted style="z-index: 2000;position: absolute ; left: 1%; top:10%;visibility: hidden" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
           <canvas style="z-index: 2000;position: absolute ; left: 1%; top:10%" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" height="0" ></canvas>
-          <canvas style="z-index: 2000;position: absolute ; left: 1%; top:10%;visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480"></canvas>
+          <canvas style="z-index: 2000;position: absolute ; left: 1%; top:10%;visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480"></canvas> -->
+
+          <video muted style="z-index: 5;position: absolute ; left: 7%; top:13%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
+          <video muted style="z-index: 0;position: absolute ; left: 7%; top:20%;visibility: hidden" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
+          <canvas style="z-index: 2000;position: absolute ; left: 3%; top:13%" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" height="0" ></canvas>
+          <canvas style="z-index: 2000;position: absolute ; left: 3%; top:13%;visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480"></canvas>
+
 
         </div>
       <!-- </template> -->
-      <div style="margin-top:60%;left:10px">
-        <cv-button style="margin-right:10px;" id="snap" v-on:click="capture()">Capture Frame</cv-button>
-        <cv-button id="interval" v-on:click="intervalCapture()">Capture Frame Interval</cv-button>
-      </div>
+        <div style="margin-top:60%;left:10px">
+          <cv-button style="margin-right:10px;" id="snap" v-on:click="capture()">Capture Frame</cv-button>
+          <cv-button id="interval" v-on:click="intervalCapture()">Capture Frame Interval</cv-button>
+        </div>
     </div>
 
 
@@ -70,8 +78,11 @@
       <template v-if="inferences.length > 0">
       </template>
       <div>
-        <div style="border:1px solid rgb(128, 201, 123); float:left;width:45%;height:400px;">
+        <div style="border:1px solid rgb(128, 201, 123); float:left;width:45%;height:500px;">
           <h5>Good Labels</h5>
+          <p>
+            {{Object.keys(inferencesByCategory['positive']).length}} results found
+          </p>
           <div style="height:70px;overflow-y:auto;">
             <template v-for="label in selected_good_labels">
               <cv-tag
@@ -98,8 +109,12 @@
         </div>
 
 
-        <div style="border:1px solid rgb(237, 43, 33); float:right;width:45%;height:400px;">
+        <div style="border:1px solid rgb(237, 43, 33); float:right;width:45%;height:500px;">
             <h5>Bad Labels</h5>
+            <p>
+              {{Object.keys(inferencesByCategory['negative']).length}} results found
+            </p>
+
             <div style="height:70px;overflow-y:auto;">
               <template v-for="label in selected_bad_labels">
                 <cv-tag
@@ -143,21 +158,44 @@
       </div>
     </div> -->
 
+    <!-- TODO finish testing grid -->
 
-    <div style="width:100%;margin-top:40%;float:center;display: grid;grid-template-columns: auto auto;">
-      <div style="float:left">
-        <cv-tile>
-          <cv-data-table :columns="['Class', 'Count']" :data="Object.keys(counts).map((key) => [key, counts[key]])" ref="table"></cv-data-table>
-        </cv-tile>
-      </div>
-      <div style="float:right">
-        <cv-tile>
-          <ccv-donut-chart :data='chartData' :options='chartOptions'></ccv-donut-chart>
-          <!-- {{inferences}} -->
-        </cv-tile>
-      </div>
-    </div>
+      <template v-if="inferences.length > 0">
+      <!-- {{inferencesByCategory['negative']}} -->
+        <div class="bx--grid" style="margin-top:45%">
+          <div class="bx--row" style="align-items: center; justify-content: center">
+            <div class="bx--col" >
+              <!-- <cv-tile > -->
+                <cv-data-table :columns="['Class', 'Count']" :data="Object.keys(counts).map((key) => [key, counts[key]])" ref="table"></cv-data-table>
+              <!-- </cv-tile> -->
 
+            </div>
+            <div class="bx--col" style="align-items: center; justify-content: center">
+              <!-- <cv-tile > -->
+                <ccv-donut-chart :data='chartData' :options='chartOptions'></ccv-donut-chart>
+              <!-- </cv-tile> -->
+            </div>
+            <div class="bx--col"></div>
+          </div>
+        </div>
+
+        <!-- <cv-data-table :columns="['']" :data="inferences"   ref="table"></cv-data-table> -->
+
+      </template>
+      <!-- {{ inferencesByCategory['positive'][ Object.keys(inferencesByCategory['positive'])[0] ] }} -->
+
+      <!-- <hr style="width:95%" />
+      Images with Positive Inferences
+      {{Object.keys(inferencesByCategory['positive']).length}}
+      <hr style="width:95%" />
+      Images with Negative Inferences
+      {{Object.keys(inferencesByCategory['negative']).length}}
+      <hr style="width:95%" />
+      {{inferencesByCategory['positive']}}
+      <hr style="width:95%" /> -->
+
+
+    <!-- </template> -->
 
     <!-- TODO, style feed -->
     <!-- <div style="width:45%">
@@ -745,6 +783,25 @@
     },
     methods: {
 
+
+      genLineData() {
+        // inferencesByCategory['negative']
+        // Object.keys(inferencesByCategory['negative']).map( (id) => {
+        //   inferencesByCategory['negative'][id]
+        // })
+
+        // [created_date]
+
+        // {
+    		// 		"group": "Dataset 1",
+    		// 		"key": "Qty",
+    		// 		"value": 65000
+    		// },
+
+        // this.$data.inferences.map((inf) => {
+        //   this.checkClasses(inf, this.$data.selected_good_labels).length
+        // })
+      },
       parseDate(date) {
         var parsedDate = Date.parse(d)
         return `${parsedDate.getYear()}/${parsedDate.getMonth()}/${parsedDate.getDay()} ${parsedDate.getHours()}:${parsedDate.getMinutes()}:${parsedDate.getSeconds()}`

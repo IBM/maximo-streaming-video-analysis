@@ -139,7 +139,7 @@ Clicking on one of the inference results will show a popup modal with detailed i
 
 <img src="https://i.imgur.com/X0UnZhd.png" />
 
-# Learn more
+<!-- # Learn more -->
 
 <!-- * **Watson IOT Platform Code Patterns**: Enjoyed this Code Pattern? Check out our other [Watson IOT Platform Code Patterns](https://developer.ibm.com/?s=Watson+IOT+Platform). -->
 
