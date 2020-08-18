@@ -12,7 +12,7 @@
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'login-modal', 'title': 'Login'})">Login</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'})">Configure Model</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-configured-models'})">View Configured Models</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Stream RTSP</CvButton>
+        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="stopStream">Stop Stream</CvButton>
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'show-inference'})">Show Inference</CvButton> -->
@@ -166,7 +166,7 @@
           <div class="bx--row" style="align-items: center; justify-content: center">
             <div class="bx--col" >
               <!-- <cv-tile > -->
-                <cv-data-table :columns="['Class', 'Count']" :data="Object.keys(counts).map((key) => [key, counts[key]])" ref="table"></cv-data-table>
+                <cv-data-table :columns="['Class', 'Count']" :data="Object.keys(counts).map((key) => [key, counts[key]])" ></cv-data-table>
               <!-- </cv-tile> -->
 
             </div>
@@ -179,8 +179,38 @@
           </div>
         </div>
 
-        <!-- <cv-data-table :columns="['']" :data="inferences"   ref="table"></cv-data-table> -->
+        <div class="bx--row" style="align-items: center; justify-content: center">
 
+          <div class="bx--col-lg-16">
+          <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']">
+            <template v-if="use_htmlData" slot="data">
+              <cv-data-table-row v-for="(row, rowIndex) in inferences" :key="`${rowIndex}`" :value="`${rowIndex}`">
+                 <cv-data-table-cell><input type="text" :value="row['analysis_type']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+                 <cv-data-table-cell><input type="text" :value="parseDate(row['created_date'])" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+                 <cv-data-table-cell>
+                   <template v-if="row['analysis_type'] == 'object_detection'">
+                     <template v-for="c in row['classified']">
+                       <cv-tag :label="c['label']"></cv-tag>
+                     </template>
+                   </template>
+                   <template v-else-if="row['analysis_type'] == 'classification'">
+                     <template v-for="c in row['classified']">
+                       <cv-tag :label="c['name']"></cv-tag>
+                     </template>
+                   </template>
+                   <template v-else>
+                     "type doesn't match"
+                   </template>
+                 </cv-data-table-cell>
+                 <cv-data-table-cell><input type="text" :value="selectedModelName" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+               </cv-data-table-row>
+             </template>
+          </cv-data-table>
+          </div>
+
+        </div>
+
+        <!-- <cv-data-table :columns="['']" :data="inferences"   ref="table"></cv-data-table> -->
       </template>
       <!-- {{ inferencesByCategory['positive'][ Object.keys(inferencesByCategory['positive'])[0] ] }} -->
 
@@ -263,7 +293,7 @@
           <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="stream">
             <cv-text-input
               label="URL"
-              placeholder="URL"
+              placeholder="URL (Youtube or RTSP)"
               v-model="rtsp_url">
             </cv-text-input>
             <cv-text-input
@@ -610,6 +640,7 @@
           function: '',
           args: ''
         },
+        use_htmlData: true,
         countGenerated: false,
         args: [],
         products: [],
