@@ -11,10 +11,9 @@
 
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'login-modal', 'title': 'Login'})">Login</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'})">Configure Model</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-configured-models'})">View Configured Models</CvButton>
+        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-configured-models'})">View Configured Models</CvButton> -->
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="stopStream">Stop Stream</CvButton>
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'show-inference'})">Show Inference</CvButton> -->
 
 
@@ -38,107 +37,154 @@
         -->
 
 
-    <div style="float:left;margin-bottom:50px; width:50%" id="camera_container">
-
-      <!-- <div><video style="border:dotted" src="ws://localhost:9999" width="640" height="480" autoplay></video></div> -->
-      <!-- <template v-if="isStreaming"> -->
-
-        <div style="float:center">
-
-          <!-- <video muted style="z-index: 2000;position: absolute ; left: 1%; top:10%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
-          <video muted style="z-index: 2000;position: absolute ; left: 1%; top:10%;visibility: hidden" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
-          <canvas style="z-index: 2000;position: absolute ; left: 1%; top:10%" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" height="0" ></canvas>
-          <canvas style="z-index: 2000;position: absolute ; left: 1%; top:10%;visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480"></canvas> -->
-
-          <video muted style="z-index: 5;position: absolute ; left: 7%; top:13%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
-          <video muted style="z-index: 0;position: absolute ; left: 7%; top:20%;visibility: hidden" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
-          <canvas style="z-index: 2000;position: absolute ; left: 3%; top:13%" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" height="0" ></canvas>
-          <canvas style="z-index: 2000;position: absolute ; left: 3%; top:13%;visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480"></canvas>
+    <div class="bx--grid">
 
 
-        </div>
-      <!-- </template> -->
-        <div style="margin-top:60%;left:10px">
-          <cv-button style="margin-right:10px;" id="snap" v-on:click="capture()">Capture Frame</cv-button>
-          <cv-button id="interval" v-on:click="intervalCapture()">Capture Frame Interval</cv-button>
-        </div>
-    </div>
+    <div class="bx--row">
 
 
+      <div  class="bx--col-lg" style="margin-right:5%">
+        <!-- <div><video style="border:dotted" src="ws://localhost:9999" width="640" height="480" autoplay></video></div> -->
+        <!-- <template v-if="isStreaming"> -->
+          <cv-inline-loading
+            style="margin-left: 18%;"
+            :state="loadingState" :loading-text="loadingText">
+          </cv-inline-loading>
 
+          <div style="float:center">
 
-    <div style="width:45%;float:right;height:480px;margin-right:5%">
+            <video muted loop @ended="restartStream()" style="width: 640px;height:480px;z-index: 5;position: absolute ; left: 2%; top:13%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
+            <video muted loop @ended="restartStream()" style="width: 640px;height:480px;z-index: 0;position: absolute ; left: 2%; top:20%;visibility: hidden" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
+            <canvas style="width: 640px;height:480px;z-index: 2000;position: absolute ; left: 3%; top:13%;" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" width="640" height="480" ></canvas>
+            <canvas style="z-index: 2000;position: absolute ; left: 3%; top:13%;visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480" ></canvas>
 
-      <h3>Inference Results</h3>
-      <template v-if="Object.keys(selectedModel).length > 0">
-        <!-- <h5>Selected Model</h5> -->
-        <h5>{{selectedModel['name']}}</h5>
-      </template>
-
-      <template v-if="inferences.length > 0">
-      </template>
-      <div>
-        <div style="border:1px solid rgb(128, 201, 123); float:left;width:45%;height:500px;">
-          <h5>Good Labels</h5>
-          <p>
-            {{Object.keys(inferencesByCategory['positive']).length}} results found
-          </p>
-          <div style="height:70px;overflow-y:auto;">
-            <template v-for="label in selected_good_labels">
-              <cv-tag
-              :label="label"
-              kind="gray"
-              ></cv-tag>
-            </template>
           </div>
+        <!-- </template> -->
+      </div>
 
-          <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:400px">
-            <template v-for="inference in inferences">
-              <!-- <template v-if="inference.classified.filter(value => selected_good_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
+      <div class="bx--col" style="margin-right:5%">
 
-              <!-- {"_negative_":"0.78148"} -->
+        <h3>Inference Results</h3>
+        <template v-if="Object.keys(selectedModel).length > 0">
+          <!-- <h5>Selected Model</h5> -->
+          <h5>{{selectedModel['name']}}</h5>
+        </template>
 
-              <template v-if="checkClasses(inference, selected_good_labels, 'positive').length > 0">
-                <cv-tile style="width:150px;height:100px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})" :kind="inferenceTileKind">
-                  <img style="width:120px;height:80px" :src=inference.canvas_url><img/>
-                  <!-- Detected Objects: {{inference.classified.map( i => `${i.confidence} ${i.label}`).join('_')}} -->
-                </cv-tile>
-              </template>
-            </template>
-          </div>
-        </div>
-
-
-        <div style="border:1px solid rgb(237, 43, 33); float:right;width:45%;height:500px;">
-            <h5>Bad Labels</h5>
+        <template v-if="inferences.length > 0">
+        </template>
+        <div>
+          <div style="border:1px solid rgb(128, 201, 123); float:left;width:50%;height:500px;">
+            <h5>Good Labels</h5>
             <p>
-              {{Object.keys(inferencesByCategory['negative']).length}} results found
+              found in {{Object.keys(inferencesByCategory['positive']).length}} images
             </p>
-
             <div style="height:70px;overflow-y:auto;">
-              <template v-for="label in selected_bad_labels">
+              <template v-for="label in selected_good_labels">
                 <cv-tag
                 :label="label"
+                :kind="gray"
                 ></cv-tag>
               </template>
             </div>
+
             <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:400px">
               <template v-for="inference in inferences">
-                <!-- <template v-if="inference.classified.filter(value => selected_bad_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
-                <template v-if="checkClasses(inference, selected_bad_labels, 'negative').length > 0">
-                  <!-- <cv-tile style="height:200px; width:250px" kind="clickable" theme=""> -->
-                  <cv-tile  style="width:150px;height:100px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})"  :kind="inferenceTileKind">
+                <!-- <template v-if="inference.classified.filter(value => selected_good_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
+
+                <!-- {"_negative_":"0.78148"} -->
+
+                <template v-if="checkClasses(inference, selected_good_labels, 'positive').length > 0">
+                  <cv-tile style="width:150px;height:100px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})" :kind="inferenceTileKind">
                     <img style="width:120px;height:80px" :src=inference.canvas_url><img/>
                     <!-- Detected Objects: {{inference.classified.map( i => `${i.confidence} ${i.label}`).join('_')}} -->
                   </cv-tile>
                 </template>
               </template>
             </div>
+          </div>
+
+
+          <div style="border:1px solid rgb(237, 43, 33); float:right;width:50%;height:500px;">
+              <h5>Bad Labels</h5>
+              <p>
+                found in {{Object.keys(inferencesByCategory['negative']).length}} images
+              </p>
+
+              <div style="height:70px;overflow-y:auto;">
+                <template v-for="label in selected_bad_labels">
+                  <cv-tag
+                  :label="label"
+                  ></cv-tag>
+                </template>
+              </div>
+              <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:400px">
+                <template v-for="inference in inferences">
+                  <!-- <template v-if="inference.classified.filter(value => selected_bad_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
+                  <template v-if="checkClasses(inference, selected_bad_labels, 'negative').length > 0">
+                    <!-- <cv-tile style="height:200px; width:250px" kind="clickable" theme=""> -->
+                    <cv-tile  style="width:150px;height:100px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})"  :kind="inferenceTileKind">
+                      <img style="width:120px;height:80px" :src=inference.canvas_url><img/>
+                      <!-- Detected Objects: {{inference.classified.map( i => `${i.confidence} ${i.label}`).join('_')}} -->
+                    </cv-tile>
+                  </template>
+                </template>
+              </div>
+          </div>
         </div>
+      </div>
+
+      <div class="bx--col-4">
+        <ccv-donut-chart style="margin-top:40%" :data='chartData' :options='chartOptions'></ccv-donut-chart>
       </div>
     </div>
 
 
+
+
+  </div>
+
+  <div class="bx--row">
+    <div style="float:left;margin-left:5%">
+      <!-- <cv-button style="margin-right:10px;" id="snap" v-on:click="capture()">Analyze Frame</cv-button>           -->
+      <cv-button id="interval" style="margin-right: 10px" v-on:click="intervalCapture()">Start Image Analysis</cv-button>
+      <cv-button style="margin: 0px 10px; text-align: center" type="default" v-on:click="stopStream">Stop Analysis</cv-button>
+      <cv-button id="configure_interval" style="margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval</cv-button>
+      <!-- <Settings32  style="float:right" @click="showModal({'name': 'configure-interval-modal'})"/> -->
+      <!-- <CalendarSettings16/> -->
+    </div>
+    <div class="bx--col"></div>
+
+  </div>
+
+  <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
+
+    <div class="bx--col-lg-32">
+    <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']">
+      <template v-if="use_htmlData" slot="data">
+        <cv-data-table-row v-for="(row, rowIndex) in inferences" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
+           <cv-data-table-cell><input type="text" :value="row['analysis_type']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+           <cv-data-table-cell><input type="text" :value="parseDate(row['created_date'])" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+           <cv-data-table-cell style="overflow-x:auto">
+             <template v-if="row['analysis_type'] == 'object_detection'">
+               <template v-for="c in row['classified']">
+                 <cv-tag :label="c['label']" :type="gray"></cv-tag>
+               </template>
+             </template>
+             <template v-else-if="row['analysis_type'] == 'classification'">
+               <template v-for="c in row['classified']">
+                 <cv-tag :label="c['name']" :type="gray"></cv-tag>
+               </template>
+             </template>
+             <template v-else>
+               "type doesn't match"
+             </template>
+           </cv-data-table-cell>
+           <cv-data-table-cell><input type="text" :value="selectedModelName" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+         </cv-data-table-row>
+       </template>
+    </cv-data-table>
+    </div>
+  </div>
     <!-- <div class="bx--grid" style="width:90%;margin-top:40%">
       <div class="bx--row">
         <div class="bx--col">
@@ -160,58 +206,10 @@
 
     <!-- TODO finish testing grid -->
 
-      <template v-if="inferences.length > 0">
       <!-- {{inferencesByCategory['negative']}} -->
-        <div class="bx--grid" style="margin-top:45%">
-          <div class="bx--row" style="align-items: center; justify-content: center">
-            <div class="bx--col" >
-              <!-- <cv-tile > -->
-                <cv-data-table :columns="['Class', 'Count']" :data="Object.keys(counts).map((key) => [key, counts[key]])" ></cv-data-table>
-              <!-- </cv-tile> -->
 
-            </div>
-            <div class="bx--col" style="align-items: center; justify-content: center">
-              <!-- <cv-tile > -->
-                <ccv-donut-chart :data='chartData' :options='chartOptions'></ccv-donut-chart>
-              <!-- </cv-tile> -->
-            </div>
-            <div class="bx--col"></div>
-          </div>
-        </div>
-
-        <div class="bx--row" style="align-items: center; justify-content: center">
-
-          <div class="bx--col-lg-16">
-          <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']">
-            <template v-if="use_htmlData" slot="data">
-              <cv-data-table-row v-for="(row, rowIndex) in inferences" :key="`${rowIndex}`" :value="`${rowIndex}`">
-                 <cv-data-table-cell><input type="text" :value="row['analysis_type']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
-                 <cv-data-table-cell><input type="text" :value="parseDate(row['created_date'])" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
-                 <cv-data-table-cell>
-                   <template v-if="row['analysis_type'] == 'object_detection'">
-                     <template v-for="c in row['classified']">
-                       <cv-tag :label="c['label']"></cv-tag>
-                     </template>
-                   </template>
-                   <template v-else-if="row['analysis_type'] == 'classification'">
-                     <template v-for="c in row['classified']">
-                       <cv-tag :label="c['name']"></cv-tag>
-                     </template>
-                   </template>
-                   <template v-else>
-                     "type doesn't match"
-                   </template>
-                 </cv-data-table-cell>
-                 <cv-data-table-cell><input type="text" :value="selectedModelName" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
-               </cv-data-table-row>
-             </template>
-          </cv-data-table>
-          </div>
-
-        </div>
 
         <!-- <cv-data-table :columns="['']" :data="inferences"   ref="table"></cv-data-table> -->
-      </template>
       <!-- {{ inferencesByCategory['positive'][ Object.keys(inferencesByCategory['positive'])[0] ] }} -->
 
       <!-- <hr style="width:95%" />
@@ -285,7 +283,33 @@
               </template>
             </div>
           </template>
+          <cv-button @click="hideModal('show-inference')">Close</cv-button>
         <!-- </cv-tile> -->
+      </modal>
+
+      <modal name="configure-interval-modal" height="auto" style="z-index: 3000;">
+        <h2 align="center"> Configure Analysis Interval </h2>
+
+        <!-- <cv-tile style="float:center"> -->
+        <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="stream">
+          <cv-number-input
+            style="margin-left:25%;margin-top:25px"
+            label="Analysis Interval (Seconds)"
+            v-model="interval"
+            min=".1"
+            >
+          </cv-number-input>
+
+          <!-- <cv-checkbox
+            style="margin-left:25%;margin-top:25px"
+            label="loop"
+            :checked=true
+            v-model="loopVideo"
+            >
+          </cv-checkbox> -->
+          <cv-button style="margin-top:30px;margin-bottom:20px;margin-right:20px;float:right" v-on:click="hideModal({'name': 'configure-interval-modal'})">Confirm</cv-button>
+        </cv-form>
+            <!-- </cv-tile> -->
       </modal>
 
       <modal name="configure-stream-modal" height="auto" style="z-index: 3000;">
@@ -524,12 +548,6 @@
     directives: {
       overlayImage: function(canvasElement, inference, url, opacity=1.0) {
           // Get canvas context
-          console.log("inference")
-          console.log(inference)
-          console.log("loading overlay")
-          console.log("inference.value")
-          console.log(inference.value)
-          console.log(Object.keys(inference.value))
           var ctx = canvasElement.getContext("2d");
           var can_w = ctx.canvas.width
           var can_h = ctx.canvas.height
@@ -635,11 +653,18 @@
 
     data() {
       return {
-        isHidden: false,
+        loadingText: "",
+        loadingState: "none",
         form: {
           function: '',
           args: ''
         },
+        localFileSrc: "",
+        loopVideo: true,
+        gray: "gray",
+        videoPlaying: false,
+        interval: 1,
+        analyzingFrames: true,
         use_htmlData: true,
         countGenerated: false,
         args: [],
@@ -664,7 +689,7 @@
         },
         inferenceTileKind: "clickable",
         chartData: [
-        		// { "group": "Error", "value": 25000},
+        		{ "group": "", "value": 1},
             // { "group": "Warning", "value": 12000},
             // { "group": "Success", "value": 12000}
         ],
@@ -793,10 +818,12 @@
       let recaptchaScript = document.createElement('script')
       recaptchaScript.setAttribute('src', 'http://localhost:3000/scripts/jsmpeg.min.js')
       document.head.appendChild(recaptchaScript)
+
     },
     mounted() {
       this.video = this.$refs.video;
-      console.log(`this.video ${this.video}`)
+      // this.$refs.video.addEventListener('ended', this.restartStream())
+      // this.$refs.remote_video.addEventListener('ended', this.restartStream())
       if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
               console.log(`stream ${stream}`)
@@ -839,16 +866,38 @@
 
       },
       uploadFile() {
-        this.$data.streamingType = "youtube"
+        this.$data.streamingType = "file"
         this.$data.isStreaming = true
         this.$refs.video.style.visibility = "hidden"
         this.$refs.remote_video.style.visibility = "visible"
-
+        this.$data.videoPlaying = true
 
         let file = this.$refs.fileUploader.internalFiles[0].file
         console.log(this.$refs.fileUploader.internalFiles)
         console.log(file)
-        this.$refs.remote_video.src = window.URL.createObjectURL(file)
+        let localUrl = window.URL.createObjectURL(file)
+        this.$data.localFileSrc = localUrl
+        this.$refs.remote_video.src = localUrl
+      },
+      restartStream() {
+        console.log("end event triggered, restarting stream")
+        console.log("this.$data.videoPlaying")
+        console.log(this.$data.videoPlaying)
+        if ((this.$data.videoPlaying) && (this.$data.streamingType == 'file')) {
+          console.log('restarting stream')
+          // this.uploadFile()
+          console.log(this.$refs.fileUploader.internalFiles)
+          this.$refs.remote_video.src = this.$data.localFileSrc
+        }
+        else if ((this.$data.videoPlaying) && (this.$data.streamingType == 'youtube')) {
+          this.stream()
+        }
+        else if ((this.$data.videoPlaying) && (this.$data.streamingType == 'rtsp')) {
+          this.stream()
+        } else {
+          console.log("stream stopped by user")
+
+        }
       },
       stream() {
         // var Youtube = new this.$Youtube()
@@ -873,7 +922,11 @@
           }
         }
 
+        this.$data.videoPlaying = true
         console.log("starting stream")
+        console.log("set this.$data.videoPlaying")
+        console.log(this.$data.videoPlaying)
+
         console.log(options)
         fetch(url, options).then((res) => {
           if ((this.$data.rtsp_url.toLowerCase().includes('youtube')) || (this.$data.rtsp_url.includes('you.tu'))) {
@@ -901,7 +954,6 @@
             this.$data.streamingType = "rtsp"
               // this.$data.player = new JSMpeg.Player('ws://localhost:9999', {
             this.player = new JSMpeg.Player('ws://localhost:9999', {
-
               canvas: document.getElementById('stream_canvas'),
               disableGl: true
             })
@@ -910,6 +962,7 @@
         }).catch( err => console.log(`starting stream error ${err} `))
       },
       stopStream(){
+
         var url = 'http://localhost:3000/stream'
         var options = {
           method: "POST",
@@ -920,6 +973,9 @@
             'Content-Type': 'application/json'
           }
         }
+        this.$data.videoPlaying = false
+        this.$data.loadingText = ""
+        this.$data.loadingState = "loaded"
         this.$refs.stream_canvas.style.visibility = 'hidden'
         this.$refs.stream_canvas.style.height = '0px'
 
@@ -1060,16 +1116,7 @@
         var threshold = 75
         var matches = results.filter(value => labels_lowered.includes(value.label) )
       },
-      t_o(seconds) {
-        // window.setTimeout( this.capture(), 1000 * seconds)
-          // let cap = this.capture
-          var that = this
-          return new Promise(resolve => {
-            console.log(`running interval after ${1000 * seconds}`)
-            setTimeout(() => {
-              resolve(that.capture());
-            }, 1000 * seconds) })
-      },
+
       sortClasses(type, inferences) {
 
       },
@@ -1123,11 +1170,40 @@
         }
 
       },
+      t_o() {
+        // window.setTimeout( this.capture(), 1000 * seconds)
+          // let cap = this.capture
+          var that = this
+          return new Promise(resolve => {
+            console.log(`running interval after ${1000 * that.$data.interval}`)
+            setTimeout(() => {
+              resolve(that.capture());
+            }, 1000 * that.$data.interval) })
+      },
+      recursiveTo() {
+        var that = this
+        return new Promise(resolve => {
+          console.log(`running interval after ${1000 * that.$data.interval}`)
+          if (this.$data.loadingState == "loading") {
+              console.log("analyzing")
+              that.t_o().then(a =>
+                resolve(that.recursiveTo())
+              )
+          } else {
+                console.log("stopping")
+                resolve()
+          }
+
+        })
+      },
       intervalCapture() {
         console.log("starting interval")
-        var seconds = 10
+        var seconds = 9999
         var that = this
-        funcs = [...Array(seconds).keys()].map( s => that.t_o(s) )
+        this.$data.loadingState = "loading"
+        this.$data.loadingText = "Capturing Frame every " + this.$data.interval + " seconds"
+        this.recursiveTo()
+        // funcs = [...Array(seconds).keys()].map( s => that.t_o(s) )
       },
       capture() {
           if ( Object.keys(this.selectedModel).length == 0) {
@@ -1155,7 +1231,7 @@
             // document.getElementById('stream_canvas').getContext('2d')
             // var i = document.getElementById('stream_canvas').getContext("webgl", {preserveDrawingBuffer: true}).canvas.toDataURL("image/png")
 
-          } else if ((this.$data.isStreaming) && (this.$data.streamingType == 'youtube')) {
+          } else if ((this.$data.isStreaming) && ((this.$data.streamingType == 'youtube') || (this.$data.streamingType == 'file')  ) ) {
             console.log("sampling youtube video")
             this.canvas = this.$refs.canvas;
             var context = this.canvas.getContext("2d").drawImage(this.$refs.remote_video, 0, 0, 640, 480);
@@ -1349,6 +1425,7 @@
         var time = dateObj.toLocaleString('en-US', {
           hour: 'numeric',
           minute: 'numeric',
+          second: 'numeric',
           hour12: true
         })
         return `${date} ${time}`

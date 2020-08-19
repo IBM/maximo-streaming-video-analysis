@@ -64,7 +64,20 @@ Vue.use(CarbonComponentsVue);
 import "carbon-components/css/carbon-components.min.css";
 import CarbonComponentsVue from '@carbon/vue';
 // let carbonLibs = ["CvList", "CvModal", "CvSelect", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvAccordion", "CvAccordionItem", "CvButton", "CvTag", "CvStructuredList"]
-Vue.use(CarbonComponentsVue, ["CvSlider", "CvModal", "CvTag", "CvTile", "CvSelect", "CvMultiSelect","CvSelectOption", "CvSelectOptGroup", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvButton", "CvForm", "CvTextArea", "CvTextInput"]);
+Vue.use(CarbonComponentsVue, ["CvCheckbox", "CvSlider", "CvNumberInput" ,"CvInlineLoading", "CvModal", "CvTag", "CvTile", "CvSelect", "CvMultiSelect","CvSelectOption", "CvSelectOptGroup", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvButton", "CvForm", "CvTextArea", "CvTextInput"]);
+
+
+import { CarbonIconsVue } from '@carbon/icons-vue';
+import CalendarSettings32 from '@carbon/icons-vue/es/calendar--settings/32';
+import Settings32 from '@carbon/icons-vue/es/settings/32';
+Vue.use(CarbonIconsVue, {
+    components: {
+      CalendarSettings32,
+      Settings32
+    }
+})
+
+// <CalendarSettings32 />
 
 import chartsVue from "@carbon/charts-vue";
 Vue.use(chartsVue);

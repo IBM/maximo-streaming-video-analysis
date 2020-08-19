@@ -102,7 +102,7 @@ npm install
 
 Start backend
 ```
-npm start
+PORT=3000 npm start
 ```
 
 ## 3. Configure web application
