@@ -36,50 +36,48 @@
 
         -->
 
+  <div class="bleed">
 
-    <div class="bx--grid bx--grid--condensed">
+    <div class="bx--grid">
 
 
     <div class="bx--row">
-
-
-
-      <div  class="bx--col-md-3" style="position:relative">
+      <div class="bx--col-lg-4" >
         <!-- <div><video style="border:dotted" src="ws://localhost:9999" width="640" height="480" autoplay></video></div> -->
-        <div style="top:0;left:0;right:0;margin:auto;width: 50%;">
-          <div style="margin:auto;width: 50%;">
-          <cv-inline-loading
-            style="width:150px"
-            :state="loadingState"
-            :loading-text="loadingText"
-            finished-text="Standing by for analysis"
-            ending-text="Analysis Stopped"
-            >
-          </cv-inline-loading>
-        </div>
+        <cv-tile>
+
+
+        <div style="top:0;left:0;right:0;margin:auto;width: 50%;position:relative">
+          <div style="margin:auto;width: 50%;position:relative">
+            <cv-inline-loading
+              style="width:180px"
+              :state="loadingState"
+              :loading-text="loadingText"
+            </cv-inline-loading>
+          </div>
 
         </div>
-
-        <div style="width: 640px;height:480px;">
+<!-- style="position:relative" -->
+        <div style="width: 100%;height:480px;">
           <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <video muted loop controls @ended="restartStream()" style="z-index: 5;width: 640px;height:480px;" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
+            <video muted loop controls @ended="restartStream()" style="z-index: 10;width: 100%;height:480px;" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
           </div>
           <!-- <div style="width: 640px;height:480px;z-index: 0;position: absolute;top:0"> -->
-          <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <video muted loop controls @ended="restartStream()"  style="z-index: 5;width: 640px;height:480px;" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
+          <div style="visibility: hidden;width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
+            <video muted loop controls @ended="restartStream()"  style="z-index: 5;width: 100%;height:480px;" crossorigin="anonymous" ref="remote_video" id="remote_video"  height="480" autoplay></video>
           </div>
           <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <canvas style="width: 640px;height:480px;z-index: 10;visibility: hidden" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" width="640" height="480" ></canvas>
+            <canvas style="width: 100%;height:480px;z-index: 9;visibility: hidden" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas"  width="640" height="480" ></canvas>
           </div>
           <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
             <canvas style="z-index: 0; visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480" ></canvas>
           </div>
         </div>
 
-      <div style="margin-top:10px">
-        <cv-button id="interval" style="margin-right: 10px" v-on:click="intervalCapture()">Start Image Analysis</cv-button>
-        <cv-button style="margin: 0px 10px; text-align: center" type="default" v-on:click="stopStream">Stop Analysis</cv-button>
-        <cv-button id="configure_interval" style="margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval</cv-button>
+      <div >
+        <cv-button id="interval" style="width:30%;margin-right: 10px" v-on:click="intervalCapture()">Start Analysis</cv-button>
+        <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis</cv-button>
+        <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval</cv-button>
       </div>
 
             <!-- <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 5; " crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
@@ -89,20 +87,17 @@
 
           <!-- </div> -->
         <!-- </template> -->
+        </cv-tile>
       </div>
 
-      <div class="bx--col-md" style="margin: 0 10px 0 10px">
 
-        <h3>Inference Results</h3>
-        <template v-if="Object.keys(selectedModel).length > 0">
-          <!-- <h5>Selected Model</h5> -->
-          <h5>{{selectedModel['name']}}</h5>
-        </template>
+      <!-- <template v-if="Object.keys(selectedModel).length > 0">
+        <h5>{{selectedModel['name']}}</h5>
+      </template> -->
 
-        <template v-if="inferences.length > 0">
-        </template>
-        <div>
-          <div style="border:1px solid rgb(128, 201, 123); float:left;width:49%;height:530px;">
+      <div class="bx--col-lg-3" >
+        <!-- <div> -->
+          <div style="border:1px solid rgb(128, 201, 123); height:530px;">
             <h5>Good Labels</h5>
             <p>
               found in {{Object.keys(inferencesByCategory['positive']).length}} images
@@ -123,17 +118,19 @@
                 <!-- {"_negative_":"0.78148"} -->
 
                 <template v-if="checkClasses(inference, selected_good_labels, 'positive').length > 0">
-                  <cv-tile style="width:95%;height:100px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})" :kind="inferenceTileKind">
-                    <img style="width:95%;height:90px" :src=inference.canvas_url><img/>
+                  <cv-tile style="width:95%;height:120px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})" :kind="inferenceTileKind">
+                    <img style="width:98%;height:98%" :src=inference.canvas_url><img/>
                     <!-- Detected Objects: {{inference.classified.map( i => `${i.confidence} ${i.label}`).join('_')}} -->
                   </cv-tile>
                 </template>
               </template>
             </div>
           </div>
+        <!-- </div> -->
+      </div>
 
-
-          <div style="border:1px solid rgb(237, 43, 33); float:right;width:49%;height:530px;">
+      <div class="bx--col-lg-3" >
+          <div style="border:1px solid rgb(237, 43, 33); height:530px;">
               <h5>Bad Labels</h5>
               <p>
                 found in {{Object.keys(inferencesByCategory['negative']).length}} images
@@ -151,8 +148,8 @@
                   <!-- <template v-if="inference.classified.filter(value => selected_bad_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
                   <template v-if="checkClasses(inference, selected_bad_labels, 'negative').length > 0">
                     <!-- <cv-tile style="height:200px; width:250px" kind="clickable" theme=""> -->
-                    <cv-tile  style="width:95%;height:100px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})"  :kind="inferenceTileKind">
-                      <img style="width:95%;height:80px" :src=inference.canvas_url><img/>
+                    <cv-tile style="width:95%;height:120px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})"  :kind="inferenceTileKind">
+                      <img style="width:98%;height:98%" :src=inference.canvas_url><img/>
                       <!-- Detected Objects: {{inference.classified.map( i => `${i.confidence} ${i.label}`).join('_')}} -->
                     </cv-tile>
                   </template>
@@ -160,16 +157,15 @@
               </div>
           </div>
         </div>
-      </div>
 
-      <div class="bx--col-1">
-        <ccv-donut-chart style="margin-top:40%" :data='chartData' :options='chartOptions'></ccv-donut-chart>
+      <div class="bx--col-lg-2">
+        <!-- <cv-tile style="height:90%;position: relative;"> -->
+          <div style="top: 25%;position: absolute;margin:0;vertical-align: middle;">
+            <ccv-donut-chart style="height:300px" :data='chartData' :options='chartOptions'></ccv-donut-chart>
+          </div>
+        <!-- </cv-tile> -->
       </div>
     </div>
-
-
-
-
   </div>
 
       <!-- <cv-button style="margin-right:10px;" id="snap" v-on:click="capture()">Analyze Frame</cv-button>           -->
@@ -184,7 +180,7 @@
     <div class="bx--col-lg-32">
       <template v-if="inferences.length > 0">
         <div style=;height:600px;overflow-y:auto;>
-          <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']" >
+          <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
             <template v-if="use_htmlData" slot="data">
 
                 <cv-data-table-row v-for="(row, rowIndex) in inferences" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
@@ -220,6 +216,9 @@
       </template>
     </div>
   </div>
+
+</div>
+
     <!-- <div class="bx--grid" style="width:90%;margin-top:40%">
       <div class="bx--row">
         <div class="bx--col">
