@@ -283,7 +283,7 @@
               </template>
             </div>
           </template>
-          <cv-button @click="hideModal('show-inference')">Close</cv-button>
+          <cv-button @click="hideModal({name:'show-inference'})">Close</cv-button>
         <!-- </cv-tile> -->
       </modal>
 
