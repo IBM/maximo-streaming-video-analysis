@@ -53,8 +53,8 @@
 
           <div style="float:center">
 
-            <video muted loop @ended="restartStream()" style="width: 640px;height:480px;z-index: 5;position: absolute ; left: 2%; top:13%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
-            <video muted loop @ended="restartStream()" style="width: 640px;height:480px;z-index: 0;position: absolute ; left: 2%; top:20%;visibility: hidden" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
+            <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 5;position: absolute ; left: 2%; top:13%" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
+            <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 0;position: absolute ; left: 2%; top:20%;visibility: hidden" crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
             <canvas style="width: 640px;height:480px;z-index: 2000;position: absolute ; left: 3%; top:13%;" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" width="640" height="480" ></canvas>
             <canvas style="z-index: 2000;position: absolute ; left: 3%; top:13%;visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480" ></canvas>
 
@@ -156,7 +156,7 @@
 
   </div>
 
-  <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
+  <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px;height:600px;overflow-y:auto;">
 
     <div class="bx--col-lg-32">
     <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']">
