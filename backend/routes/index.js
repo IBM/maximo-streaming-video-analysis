@@ -24,7 +24,6 @@ const websocket = require('websocket-stream')
 
 var rstpStream
 
-
 require('dotenv').config()
 
 router.all('*', cors())
@@ -240,71 +239,50 @@ var vid_url
 router.post('/stream/:time', function(req, res) {
 
 })
+
 router.post('/stream', function(req, res) {
   console.log("stream action received")
   console.log(req.body)
   if (req.body.action == 'start') {
-    if ((req.body.username) && (req.body.password) && (req.body.url)) {
-      var endpoint = `rtsp://${req.body.username}:${req.body.password}@${req.body.url}`
-    }
-    else if (req.body.url) {
-      var endpoint = `rtsp://${req.body.url}`
-    } else if (process.env.RTSP_URL) {
-      console.log("setting rtspurl from env variable")
-      var endpoint = process.env.RTSP_URL
-    } else {
-      var endpoint = `rtsp://${req.body.url}`
-    }
-
     // /*
     if ((req.body.url.toLowerCase().includes('youtube')) || (req.body.url.includes('you.tu'))) {
-      // var url = "https://www.youtube.com/watch?v=4kN-RXBfVYE"
-      // var vid_url
       Youtube.getInfo({url: req.body.url}).then( (video) => {
         vid_url = video.formats.filter( f => f.mimeType.includes("video/mp4") )[0].url
         console.log("returning url")
         res.json({url: vid_url})
-        // var remoteStream = fs.createReadStream(vid_url)
-
-        // request(vid_url).pipe(  )
-
-        // remoteStream.pipe(res)
-        // console.log("starting websocket pipe")
-        // ws.pipe(remoteStream)
-        // ws.pipe(process.stdout)
-
-        // const ws = new WebSocket('wss://echo.websocket.org/', {
-        //   origin: 'https://websocket.org'
-        // });
-        // const wss = new WebSocket.Server({ port: 8080 });
-        // const duplex = WebSocket.createWebSocketStream(ws, { encoding: 'utf8' });
-        // duplex.pipe(process.stdout);
-        // process.stdin.pipe(duplex);
-        /*
+      })
+    } else {
+    // */
+      // expect an rtsp url.
+      if ((req.body.username) && (req.body.password) && (req.body.url) ) {
+        var endpoint = `${req.body.username}:${req.body.password}@${req.body.url.replace('rtsp://', '')}`
+      }
+      else if (req.body.url) {
+        var endpoint = `${req.body.url}`
+      } else if (process.env.RTSP_URL) {
+        console.log("setting rtspurl from env variable")
+        var endpoint = process.env.RTSP_URL
+      } else {
+        var endpoint = `${req.body.url}`
+      }
+      res.send(200)
+      console.log(endpoint)
+      try {
+        if (rstpStream) {
+          rstpStream.stop()
+        }
         rstpStream = new Stream({
           name: 'name',
-          streamUrl: vid_url,
+          streamUrl: endpoint,
           wsPort: 9999,
           ffmpegOptions: { // options ffmpeg flags
             '-stats': '', // an option with no neccessary value uses a blank string
             '-r': 30 // options with required values specify the value after the key
           }
         })
-        */
-      })
-    } else {
-    // */
-      res.send(200)
-      console.log(endpoint)
-      rstpStream = new Stream({
-        name: 'name',
-        streamUrl: endpoint,
-        wsPort: 9999,
-        ffmpegOptions: { // options ffmpeg flags
-          '-stats': '', // an option with no neccessary value uses a blank string
-          '-r': 30 // options with required values specify the value after the key
-        }
-      })
+      } catch(e) {
+        console.log(e)
+      }
     }
 
   } else if (req.body.action == 'stop') {
