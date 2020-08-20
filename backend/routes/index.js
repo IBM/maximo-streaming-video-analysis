@@ -230,7 +230,12 @@ router.get('/ytstream', function(req, res) {
   res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
   res.header("Access-Control-Allow-Credentials", "true")
 
-  request(vid_url).pipe(res)
+  try {
+    request(vid_url).pipe(res)
+  } catch(e) {
+    console.log(e)
+    res.send(500)
+  }
 })
 
 var vid_url

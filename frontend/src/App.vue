@@ -58,7 +58,7 @@
 
         </div>
 <!-- style="position:relative" -->
-        <div style="width: 100%;height:480px;">
+        <div style="width: 120%;height:480px;">
           <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
             <video muted loop controls @ended="restartStream()" style="z-index: 10;width: 100%;height:480px;" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
           </div>
@@ -177,7 +177,7 @@
 
   <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
 
-    <div class="bx--col-lg-32">
+    <div class="bx--col-md-12">
       <template v-if="inferences.length > 0">
         <div style=;height:600px;overflow-y:auto;>
           <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
@@ -292,12 +292,16 @@
 
       <modal name="upload-modal" height="auto" style="z-index: 3000;">
           <h2 align="center"> Upload File </h2>
-          <cv-file-uploader
-            :accept="['.mp4']"
-            :multiple=false
-            ref="fileUploader">
-          </cv-file-uploader>
-          <cv-button @click="uploadFile() ; hideModal({name: 'upload-modal'})">Submit</cv-button>
+          <div style="margin-left: auto; margin-right: auto;width: 75%; border: 3px solid green; padding: 10px;">
+            <cv-file-uploader
+              :accept="['.mp4']"
+              :multiple=false
+              ref="fileUploader">
+            </cv-file-uploader>
+          </div>
+          <div>
+            <cv-button @click="uploadFile() ; hideModal({name: 'upload-modal'})">Submit</cv-button>
+          </div>
       </modal>
 
       <modal name="show-inference" height="auto" style="z-index: 4000;">

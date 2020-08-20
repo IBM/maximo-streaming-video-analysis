@@ -34,7 +34,7 @@
     "uuid": "^7.0.3",
     "vuetify": "^2.1.10",
     "websocket-stream": "^5.5.2",
-    "youtube-stream-url": "^2.0.1",
+    "youtube-stream-url": "https://github.com/kkbankol-ibm/youtube-stream-url.git",
     "ytdl-core": "^3.2.0"
   },
   "devDependencies": {
