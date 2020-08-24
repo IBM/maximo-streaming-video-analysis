@@ -14,8 +14,12 @@
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-configured-models'})">View Configured Models</CvButton> -->
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
+
+        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="printColors">Print Colors</CvButton> -->
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'show-inference'})">Show Inference</CvButton> -->
 
+        <!-- {{chartOptions}}
+        {{inferences.map(inf => JSON.stringify(inf.classified))}} -->
 
       </div>
     </div>
@@ -74,10 +78,13 @@
           </div>
         </div>
 
+      <div>
+        <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="capture">Capture Frame And Analyze</cv-button>
+      </div>
       <div >
-        <cv-button id="interval" style="width:30%;margin-right: 10px" v-on:click="intervalCapture()">Start Analysis</cv-button>
-        <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis</cv-button>
-        <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval</cv-button>
+        <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
+        <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
+        <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
       </div>
 
             <!-- <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 5; " crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
@@ -97,7 +104,7 @@
 
       <div class="bx--col-lg-3" >
         <!-- <div> -->
-          <div style="border:1px solid rgb(128, 201, 123); height:530px;">
+          <div style="border:1px solid rgb(128, 201, 123); height:650px;">
             <h5>Good Labels</h5>
             <p>
               found in {{Object.keys(inferencesByCategory['positive']).length}} images
@@ -111,7 +118,7 @@
               </template>
             </div>
 
-            <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:400px">
+            <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:530px">
               <template v-for="inference in inferences">
                 <!-- <template v-if="inference.classified.filter(value => selected_good_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
 
@@ -130,7 +137,7 @@
       </div>
 
       <div class="bx--col-lg-3" >
-          <div style="border:1px solid rgb(237, 43, 33); height:530px;">
+          <div style="border:1px solid rgb(237, 43, 33); height:650px;">
               <h5>Bad Labels</h5>
               <p>
                 found in {{Object.keys(inferencesByCategory['negative']).length}} images
@@ -143,7 +150,7 @@
                   ></cv-tag>
                 </template>
               </div>
-              <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:400px">
+              <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:530px">
                 <template v-for="inference in inferences">
                   <!-- <template v-if="inference.classified.filter(value => selected_bad_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
                   <template v-if="checkClasses(inference, selected_bad_labels, 'negative').length > 0">
@@ -159,10 +166,23 @@
         </div>
 
       <div class="bx--col-lg-2">
-        <!-- <cv-tile style="height:90%;position: relative;"> -->
-          <div style="top: 25%;position: absolute;margin:0;vertical-align: middle;">
-            <ccv-donut-chart style="height:300px" :data='chartData' :options='chartOptions'></ccv-donut-chart>
-          </div>
+        <!-- <cv-tile> -->
+          <!-- <div style="top: 15%;position: absolute;margin:0;vertical-align: middle;"> -->
+            <!-- <div style="height:200px">
+              <template v-for="label in Object.keys(legend)">
+                <div :style="'width:10px;height:10px;border: 3px solid;border-color: ' + legend[label]">
+                </div>
+                <p style="text-align:right">
+                  {{label}}
+                </p>
+              </template>
+            </div> -->
+            <!-- <Plotly :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly> -->
+            <h5>Results by Category</h5>
+            <div>                          
+              <ccv-donut-chart style="padding: 10px;" :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart>
+            </div>
+          <!-- </div> -->
         <!-- </cv-tile> -->
       </div>
     </div>
@@ -176,7 +196,9 @@
       <!-- <CalendarSettings16/> -->
 
   <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
-
+    <!-- <div class="bx--col-md-12">
+      <ccv-donut-chart :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart>
+    </div> -->
     <div class="bx--col-md-12">
       <template v-if="inferences.length > 0">
         <div style=;height:600px;overflow-y:auto;>
@@ -292,7 +314,7 @@
 
       <modal name="upload-modal" height="auto" style="z-index: 3000;">
           <h2 align="center"> Upload File </h2>
-          <div style="margin-left: auto; margin-right: auto;width: 75%; border: 3px solid green; padding: 10px;">
+          <div style="margin-left: auto; margin-right: auto;width: 75%; padding: 10px;">
             <cv-file-uploader
               :accept="['.mp4']"
               :multiple=false
@@ -698,6 +720,8 @@
           function: '',
           args: ''
         },
+        legend: {},
+        chartRedraw: 0,
         localFileSrc: "",
         loopVideo: true,
         gray: "gray",
@@ -727,20 +751,61 @@
           negative: {}
         },
         inferenceTileKind: "clickable",
+        plotlyConfig: {
+          title: "My graph",
+          hole: 0.4
+        },
+        plotlyData: [{
+          values: [19, 26, 55],
+          labels: ['Residential', 'Non-Residential', 'Utility'],
+          type: 'pie'
+        }],
         chartData: [
-        		{ "group": "", "value": 1},
-            // { "group": "Warning", "value": 12000},
-            // { "group": "Success", "value": 12000}
+        		{ "group": "", "value": 1}
+            // { "group": "Bird Guards", "value": 12000},
+            // { "group": "Conductor Damaged", "value": 12000},
+            // { "group": "Conductor Good", "value": 12000},
+            // { "group": "Cotter Pin Missing_Loose", "value": 12000},
+            // { "group": "Connectors Corroded", "value": 12000},
+            // { "group": "Glass Insulators Broken", "value": 12000},
+            // { "group": "Glass Insulators Contaminated", "value": 12000},
+            // { "group": "Dampers Damaged", "value": 12000}
         ],
         chartOptions: {
-      		"title": "",
-      		"resizable": true,
+      		// "title": "Results by Category",
+      		"resizable": false,
+          "legend": {
+            "position": "top",
+            "alignment": "center",
+            "truncation": {
+              "threshold": 200,
+              "numCharacter": 200
+            },
+            "height": "300px"
+          },
+          // "data": {
+            // "loading": true
+          // },
+          "color": {
+            "scale": {"dsf": "rgb(255, 126, 255)"}
+          },
+          // "style:" {
+          //
+          // },
       		"donut": {
       				"center": {
       						"label": "Objects/Classes Detected"
-      				}
+      				},
+              "alignment": "center"
       		},
-      		"height": "400px"
+          "height": "500px",
+          // "color": {
+          //     "scale": {
+          //         "Conductor Damaged": "blue",
+          //         "Dataset 2": "red"
+          //     } // Other data groups would use default colors
+          // },
+
         },
 
         // token: (localStorage['token'] || ''),
@@ -880,7 +945,15 @@
     },
     methods: {
 
+      printColors() {
+        // var c = this.$refs.donut_chart
 
+        // /*
+        // */
+
+        // console.log(c.getFillColor())
+        // color: {"scale": {"dsf": "ff7e00"}}
+      },
       genLineData() {
         // inferencesByCategory['negative']
         // Object.keys(inferencesByCategory['negative']).map( (id) => {
@@ -1083,6 +1156,7 @@
         console.log(`updatedChartData`)
         console.log(updatedChartData)
         this.$data.chartData = updatedChartData
+        this.$data.chartRedraw += 1
       },
       getStats() {
 
@@ -1105,6 +1179,47 @@
       updateModelConfig() {
         //if ( Object.keys(this.$data.selectedModel).length > 0 ) {
         console.log("in updateModelConfig")
+        // selected_good_labels = ["Bird Guards","Conductor Damaged","Conductor Good"]
+        // let colors = {}
+        // var good_labels_populated = false
+        // var bad_labels_populated = false
+        // selected_good_labels.map( (label) =>  {return { label: `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)` }})
+        this.$data.selected_good_labels.map( (label, idx) => {
+          // colors[label] = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
+          let color = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
+          this.$data.chartOptions.color.scale[label] = color
+          console.log(`updating good label ${idx} ${label}`)
+          this.$data.legend[label] = color
+          if (idx == (this.$data.selected_good_labels.length - 1) ) {
+            // this.$refs.donut_chart.forceUpdate()
+            console.log("good labels colors added")
+            console.log(this.$data.chartOptions.color.scale)
+            // this.$data.chartRedraw += 1
+            // good_labels_populated = true
+          }
+          console.log(this.$refs.donut_chart)
+        })
+        this.$data.selected_bad_labels.map( (label, idx) => {
+          // colors[label] = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, 0, 0)`
+          console.log(`updating bad label ${idx} ${label}`)
+          let color = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, 0, 0)`
+          this.$data.chartOptions.color.scale[label] = color
+          this.$data.legend[label] = color
+          if (idx == (this.$data.selected_bad_labels.length - 1) ) {
+            // this.$data.chartRedraw += 1
+            // this.$refs.donut_chart.forceUpdate()
+            console.log("bad labels colors added")
+            console.log(this.$data.chartOptions.color.scale)
+            // bad_labels_populated = true
+          }
+          console.log(this.$refs.donut_chart)
+        })
+        // if (bad_labels_populated && good_labels_populated) {
+          // console.log("updating chart colors")
+          // console.log(colors)
+          // this.$data.chartOptions.color.scale[] = colors
+        // }
+        //// stash in localStorage
         if (this.$data.selectedModelName) {
           console.log("updating config")
           console.log(`good labels ${this.$data.selected_good_labels}`)
@@ -1614,6 +1729,12 @@
                   // TODO, curretly have to store this locally since pictures are not returned with other inferences. Should investigate where these images/metadata are stored, and possibly cache results
                   var filename = endpoint.split('/').slice(-1)[0]
 
+                  // if (analysis_type == 'classification') {
+                  // result.classified.filter( inf => inf.name == '_negative_' )
+                  // }
+                  if (JSON.stringify(result['classified']).includes('_negative_')) {
+                    return
+                  }
                   var inference = {
                     _id: result.imageMd5,
                     analysis_type: analysis_type, //"image",
