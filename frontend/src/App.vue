@@ -104,7 +104,7 @@
 
       <div class="bx--col-lg-3" >
         <!-- <div> -->
-          <div style="border:1px solid rgb(128, 201, 123); height:650px;">
+          <div style="border:1px solid rgb(128, 201, 123); height:650px">
             <h5>Good Labels</h5>
             <p>
               found in {{Object.keys(inferencesByCategory['positive']).length}} images
@@ -133,11 +133,11 @@
               </template>
             </div>
           </div>
-        <!-- </div> -->
       </div>
+      <!-- </div> -->
 
-      <div class="bx--col-lg-3" >
-          <div style="border:1px solid rgb(237, 43, 33); height:650px;">
+      <div class="bx--col-lg-3" style="z-index:10;" >
+          <div style="border:1px solid rgb(237, 43, 33); z-index:10;height:650px">
               <h5>Bad Labels</h5>
               <p>
                 found in {{Object.keys(inferencesByCategory['negative']).length}} images
@@ -163,7 +163,7 @@
                 </template>
               </div>
           </div>
-        </div>
+      </div>
 
       <div class="bx--col-lg-2">
         <!-- <cv-tile> -->
@@ -177,11 +177,12 @@
                 </p>
               </template>
             </div> -->
-            <!-- <Plotly :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly> -->
-            <h5>Results by Category</h5>
-            <div>                          
-              <ccv-donut-chart style="padding: 10px;" :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart>
+            <h5 style="justify-content: center; align-items: center;">Results by Category</h5>
+            <div style="position:relative;left:-100px;z-index:0">
+              <Plotly :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly>
             </div>
+
+            <!-- <ccv-donut-chart style="padding: 10px;" :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart> -->
           <!-- </div> -->
         <!-- </cv-tile> -->
       </div>
@@ -752,16 +753,32 @@
         },
         inferenceTileKind: "clickable",
         plotlyConfig: {
-          title: "My graph",
-          hole: 0.4
+          // title: "Results by Category",
+          hole: 0.4,
+          height: 500,
+          width: 500,
+          x: -50,
+          legend: {
+            x: 0,
+            y: -400
+          },
+
+          automargin: true
         },
         plotlyData: [{
-          values: [19, 26, 55],
-          labels: ['Residential', 'Non-Residential', 'Utility'],
-          type: 'pie'
+          values: [1],
+          labels: ["None"],
+          // textposition: "inside",
+          // textinfo: "label",
+          // xanchor:'left',
+          // yanchor:'center',
+          type: 'pie',
+          marker: {
+            colors: []
+          }
         }],
         chartData: [
-        		{ "group": "", "value": 1}
+        		{ "group": "placeholder placeholder placeholder", "value": 100}
             // { "group": "Bird Guards", "value": 12000},
             // { "group": "Conductor Damaged", "value": 12000},
             // { "group": "Conductor Good", "value": 12000},
@@ -776,28 +793,54 @@
       		"resizable": false,
           "legend": {
             "position": "top",
-            "alignment": "center",
+            "alignment": "left",
             "truncation": {
               "threshold": 200,
               "numCharacter": 200
             },
-            "height": "300px"
+            // "height": "300px"
           },
           // "data": {
             // "loading": true
           // },
           "color": {
-            "scale": {"dsf": "rgb(255, 126, 255)"}
+            "scale": {"placeholder": "rgb(220,220,220)"}
           },
           // "style:" {
           //
           // },
+          "pie": {
+              "tooltip": {
+                // "showTotal": true,
+                "truncation": {
+                  "threshold": 200,
+                  "numCharacter": 200
+                },
+              },
+              "truncation": {
+                "threshold": 200,
+                "numCharacter": 200
+              },
+              "alignment": "center"
+      		},
       		"donut": {
+              "tooltip": {
+                // "showTotal": true,
+                "truncation": {
+                  "threshold": 200,
+                  "numCharacter": 200
+                },
+              },
+              "truncation": {
+                "threshold": 200,
+                "numCharacter": 200
+              },
       				"center": {
       						"label": "Objects/Classes Detected"
       				},
               "alignment": "center"
       		},
+          "width": "300px",
           "height": "500px",
           // "color": {
           //     "scale": {
@@ -944,7 +987,9 @@
       // this.getInferenceDetails();
     },
     methods: {
-
+      showTooltip(ev) {
+        console.log(ev)
+      },
       printColors() {
         // var c = this.$refs.donut_chart
 
@@ -1143,6 +1188,8 @@
           if (idx == (all_labels.length - 1)) {
             this.$data.counts = counts
             this.$data.countGenerated = true
+            this.$data.plotlyData[0].labels = Object.keys(counts)
+            this.$data.plotlyData[0].values = Object.values(counts)
             this.genChartData(counts)
             // console.log("done counting ")
             // console.log(counts)
