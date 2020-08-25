@@ -1737,7 +1737,8 @@
                   }
                   console.log("appending video classification inference ")
                   console.log(inference)
-                  this.$data.inferences.push(inference)
+                  // this.$data.inferences.push(inference)
+                  this.$data.inferences.unshift(inference)
 
                 } else if (Object.keys(result).includes('classified')) {
                   // process single image
@@ -1798,7 +1799,8 @@
                   }
                   console.log("appending inference ")
                   console.log(inference)
-                  this.$data.inferences.push(inference)
+                  // this.$data.inferences.push(inference)
+                  this.$data.inferences.unshift(inference)
                   this.getCount()
                   this.genChartData()
                   // object detection
