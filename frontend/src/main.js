@@ -38,28 +38,9 @@ import jsPDF from 'jspdf'
 // import jsmpeg from './assets/jsmpeg.min.js' //'jsmpeg'
 import JSMpeg from '@cycjimmy/jsmpeg-player';
 
-
-
-
 import DetailedInferenceView from './components/DetailedInferenceView'
 import Drag from './components/Drag'
 import Router from 'vue-router'
-
-import SuiVue from 'semantic-ui-vue';
-import SemanticUI from 'semantic-ui-vue';
-import 'semantic-ui-css/semantic.min.css';
-// import 'vue-select/dist/vue-select.css';
-
-/*
-TODO, readd this for carbon
-import CarbonComponentsVue from "@carbon/vue";
-import { CvModal } from '../../packages/core/src/';
-Vue.use(CarbonComponentsVue);
-*/
-
-
-// /*
-// import { CvButton } from '@carbon/vue/src/components/button';
 
 import "carbon-components/css/carbon-components.min.css";
 import CarbonComponentsVue from '@carbon/vue';
@@ -115,7 +96,7 @@ Vue.use(VFC)
 Vue.use(VModal)
 Vue.use(Router)
 Vue.component('Plotly', Plotly)
-Vue.use(SuiVue);
+// Vue.use(SuiVue);
 
 Object.defineProperty(Vue.prototype, '$JSZip', { value: JSZip });
 Object.defineProperty(Vue.prototype, '$jsPDF', { value: jsPDF });
