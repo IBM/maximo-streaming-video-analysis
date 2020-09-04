@@ -3,6 +3,12 @@
 
 
   <div id="app">
+    <div>
+      <h1>
+        IBM Maximo Sample Application
+      </h1>
+    </div>
+
     <div id="menu" style="margin-top:40px; margin-bottom:40px">
       <div >
         <!-- <vue-button type="default" v-on:click="showModal({'name': 'upload-modal', 'title': 'Upload CSV File'})">Import CSV file</vue-button>
