@@ -496,8 +496,10 @@
           <div>
             <cv-select @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme="" label="Select Model" :hide-label=false >
               <cv-select-option label="Select a Model" value="" :disabled=true>Select a Model</cv-select-option>
-              <template v-for="model in models">
-                <cv-select-option :label="model.name" :value="model.name">{{model.name}}</cv-select-option>
+              <template v-if="models.length > 0">
+                <template v-for="model in models">
+                  <cv-select-option :label="model.name" :value="model.name">{{model.name}}</cv-select-option>
+                </template>
               </template>
             </cv-select>
           </div>
@@ -1289,18 +1291,11 @@
         this.hideModal({'name': 'configure-model-modal'})
       },
       setModel(modelName) {
-        // var e = document.getElementById("modelSelector");
-        // var modelName = document.getElementById("selectedModel").options[e.selectedIndex].value
         console.log(this.$refs.modelSelector)
         var modelName = this.$data.selectedModelName
         console.log(modelName)
-        // console.log(Object.keys(modelName))
-        // console.log(`setting modelName: ${JSON.stringify(modelName)}`)
-        // this.$refs.modelSelector.value = modelName
         var filteredModels = this.$data.models.filter(m => m.name == modelName)
-        // console.log( `filteredModels ${JSON.stringify(filteredModels)}` )
         console.log( `${filteredModels.length} matching models found}` )
-        // this.loadModelConfig(modelName)
         if (filteredModels.length > 0) {
           console.log("model found, selecting")
           console.log(filteredModels[0])
@@ -1978,45 +1973,6 @@
         // })
 
       },
-      /*
-      login() {
-        console.log("requesting token")
-        console.log(this.$data.input)
-        if (this.$data.input.length > 0) {
-          // localStorage.setItem('paiv_url', this.$data.input[0])
-          // localStorage.setItem('paiv_user', this.$data.input[1])
-          // localStorage.setItem('paiv_password', this.$data.input[2])
-          this.$data.url = this.$data.input[0]
-          this.$data.username = this.$data.input[1]
-          this.$data.password = this.$data.input[2]
-        }
-        var options = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            username: username,
-            password: password,
-            grant_type: "password"
-          })
-        }
-        console.log("token options")
-        console.log(options)
-        console.log("fetching from: " + url + "/api/tokens")
-        fetch(url + "/api/tokens", options).then((r) => {
-          r.json().then((t) => {
-            console.log("token received: " + t.token)
-            token = t.token
-            tokenRefreshTime = Date.now()
-            resolve(t.token)
-          })
-        }).catch((err) => {
-          console.log("error finding token")
-          console.log(err)
-          reject(err)
-        })
-      },*/
       getModels() {
         var options = {
           method: "GET",
@@ -2050,14 +2006,13 @@
           }
         }
         console.log("getting datasets")
-        // fetch(this.$data.url + "/trained-models", options).then((res) => {
         // proxy needed for cors
         fetch('http://localhost:3000/proxyget' + "/api/datasets", options).then((res) => {
           console.log("datasets received")
           // console.log(res)
           res.json().then((datasets) => {
             console.log("parsed dataset json")
-            this.$data.datasets = datasets //models.filter( (m) => m.deployed == '1'  )
+            this.$data.datasets = datasets
           })
         }).catch( (err) =>  {
           console.log("error getting datasets")
