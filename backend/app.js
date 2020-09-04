@@ -52,24 +52,48 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.json());
 // bodyParser.raw({ type: 'application/vnd.custom-type' })
 
+var StringDecoder = require('string_decoder').StringDecoder;
+
 app.use('/proxyget', function(req, res) {
-  console.log(req)
-  const headers = req.headers
-  console.log("headers")
-  console.log(headers)
-  var url = headers['x-proxy-url']
-  console.log(`url ${url}`)
-  console.log(`req.url ${req.url}`)
-  var paiv_url = (url + req.url).replace('http://', 'https://');
-  console.log("sending proxy get request to " + paiv_url)
-  const options = {
-    url: paiv_url,
-    headers: headers
-  }
-  require('request').get(options).on('error', function(err) {
-    console.log("proxyget error")
-    console.error(err)
-  }).pipe(res)
+    console.log(req)
+    const headers = req.headers
+    console.log("headers")
+    console.log(headers)
+    const url = headers['x-proxy-url']
+    console.log(`url ${url}`)
+    console.log(`req.url ${req.url}`)
+    const paiv_url = (url + req.url).replace('http://', 'https://');
+    console.log("sending proxy get request to " + paiv_url)
+    const options = {
+      url: paiv_url,
+      headers: {
+        'x-proxy-url': headers['x-proxy-url'],
+        'x-auth-token': headers['x-auth-token']
+      }  //Object.assign(headers, {'user-agent': 'node-fetch/1.0'})
+    }
+    console.log(`options ${JSON.stringify(options)}`)
+    const decoder = new StringDecoder('utf8');
+
+
+    require('request').get(options)
+      .on('error', function(err) {
+        console.log("proxyget error")
+        console.error(err)
+      })
+      .on('response', function(response) {
+        console.log(response.statusCode) // 200
+        console.log(response.headers['content-type']) // 'image/png'
+      })
+      .on('data', function(data) {
+        // console.log("proxyget data chunk received")
+        // console.log(Buffer.from(data).toString('utf8'))
+        var textChunk = decoder.write(data);
+        // console.log(textChunk)
+      })
+      .on("finish", function(){
+        console.log("closed")
+        console.log(decoder)
+      }).pipe(res)
 });
 
 // app.use(bodyParser.raw({ type: 'application/vnd.custom-type' }));

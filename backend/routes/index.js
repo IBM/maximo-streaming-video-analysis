@@ -99,21 +99,11 @@ router.post('/token', function(req, res) {
       })
 
     } else {
-      // var token = getToken(username, password, url)
-      // res.send(token)
       console.log("username / password not set")
       res.send("username / password not set")
       res.send(401)
-      /*
-      getToken(username, password, url).then( (t) => {
-        token = t
-        console.log(t)
-        res.send(token)
-      } )
-      */
     }
   }
-  // res.set('Content-Type', 'text/json')
 });
 
 

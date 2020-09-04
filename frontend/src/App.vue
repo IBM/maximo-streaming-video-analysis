@@ -11,40 +11,14 @@
 
     <div id="menu" style="margin-top:40px; margin-bottom:40px">
       <div >
-        <!-- <vue-button type="default" v-on:click="showModal({'name': 'upload-modal', 'title': 'Upload CSV File'})">Import CSV file</vue-button>
-        <vue-button type="default" v-on:click="showModal({'name': 'filter-modal', 'title': 'Filter Table Data'})">Add/View Data Filters</vue-button>
-        <vue-button type="default" v-on:click="downloadReports">Export PDF</vue-button> -->
-
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'login-modal', 'title': 'Login'})">Login</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'})">Configure Model</CvButton>
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-configured-models'})">View Configured Models</CvButton> -->
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
-
-        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="printColors">Print Colors</CvButton> -->
-        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'show-inference'})">Show Inference</CvButton> -->
-
-        <!-- {{chartOptions}}
-        {{inferences.map(inf => JSON.stringify(inf.classified))}} -->
-
       </div>
     </div>
 
-    <!-- document.getElementById('testimg').src = document.getElementById('stream_canvas').getContext("webgl", {preserveDrawingBuffer: true}).canvas.toDataURL("image/png")  -->
-    <!--
-         var context = document.getElementById('stream_canvas').getContext("2d").drawImage(this.video, 0, 0, 960, 480)
-
-         var context = document.getElementById('stream_canvas').getContext("webgl").drawImage(this.video, 0, 0, 960, 480)
-
-         var context = document.getElementById('stream_canvas').getContext("webgl").drawImage(this.video, 0, 0, 960, 480).canvas
-
-         var context = document.getElementById('stream_canvas').getContext("webgl").drawImage(this.video, 0, 0, 960, 480).canvas
-         var canvas_url = canvas.toDataURL("image/png")
-         document.getElementById('testimg').src = canvas_url
-
-         document.getElementById('video')
-
-        -->
 
   <div class="bleed">
 
@@ -53,7 +27,6 @@
 
     <div class="bx--row">
       <div class="bx--col-lg-4" >
-        <!-- <div><video style="border:dotted" src="ws://localhost:9999" width="640" height="480" autoplay></video></div> -->
         <cv-tile>
 
 
@@ -67,12 +40,10 @@
           </div>
 
         </div>
-<!-- style="position:relative" -->
         <div style="width: 120%;height:480px;">
           <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
             <video muted loop controls @ended="restartStream()" style="z-index: 10;width: 100%;height:480px;" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
           </div>
-          <!-- <div style="width: 640px;height:480px;z-index: 0;position: absolute;top:0"> -->
           <div style="visibility: hidden;width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
             <video muted loop controls @ended="restartStream()"  style="z-index: 5;width: 100%;height:480px;" crossorigin="anonymous" ref="remote_video" id="remote_video"  height="480" autoplay></video>
           </div>
@@ -493,13 +464,12 @@
             placeholder="Optional placeholder text">
           </cv-text-area> -->
           <!-- <cv-select v-mode.lazy="selectedModel" label="Models"> -->
-          <div>
-            <cv-select @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme="" label="Select Model" :hide-label=false >
+
+          <div style="height:80px;position: relative">
+            <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme="" label="Select Model" :hide-label=true >
               <cv-select-option label="Select a Model" value="" :disabled=true>Select a Model</cv-select-option>
-              <template v-if="models.length > 0">
-                <template v-for="model in models">
-                  <cv-select-option :label="model.name" :value="model.name">{{model.name}}</cv-select-option>
-                </template>
+              <template v-for="model in models">
+                <cv-select-option :label="model.name" :value="model.name">{{model.name}}</cv-select-option>
               </template>
             </cv-select>
           </div>
@@ -541,7 +511,9 @@
               min-label="0"
               max-label="100"></cv-slider>
           </template>
-          <cv-button  style="margin-top:20px;margin-bottom:20px;float:right" >Select</cv-button>
+          <div>
+            <cv-button  style="margin-top:20px;margin-bottom:20px;float:right" >Select</cv-button>
+          </div>
         </cv-form>
 
     </modal>
@@ -1647,14 +1619,12 @@
             "X-Auth-Token": this.$data.token,
           }
         }
-        var url = "http://localhost:3000/proxyget" + "/api/trained-models"
-        // var url = "http://localhost:8081/proxyget" + "/api/trained-models"
-        // var url = this.$data.url + "/api/trained-models"
-        // fetch(this.$data.url + "/trained-models", options).then((res) => {
+        var url = "http://localhost:3000/proxyget/api/trained-models"
         // proxy needed for cors
         fetch(url, options).then((res) => {
           console.log("models received")
-          // console.log(res)
+          console.log("res")
+          console.log(res)
           res.json().then((models) => {
             // if ( models != {} ) {
               console.log(models)
@@ -1831,7 +1801,7 @@
       },
 
       login() {
-        console.log("requesting token")
+        console.log(`requesting token from ${this.$data.url}/api/tokens`)
         var options = {
           method: "POST",
           headers: {
@@ -1844,16 +1814,16 @@
             "grant_type": "password"
           })
         }
-        console.log(`login options ${options}`)
+        console.log(`login options ${JSON.stringify(options)}`)
         localStorage.setItem('url', this.$data.url)
         fetch(this.$data.url + "/api/tokens", options).then((res) => {
           console.log("token api request made")
           this.$modal.hide("login-modal")
           res.json().then((token) => {
+            console.log(token)
             console.log(`received new token ${JSON.stringify(token['token'])}`)
             this.$data.token = token['token']
             localStorage.setItem('token', token['token'])
-
             this.getModels()
             // pull data
           }).catch((err) => {
@@ -1974,6 +1944,7 @@
 
       },
       getModels() {
+        console.log("getting models")
         var options = {
           method: "GET",
           headers: {
@@ -1982,14 +1953,13 @@
           }
         }
         var url = 'http://localhost:3000/proxyget' + "/api/trained-models"
-        console.log("getting models")
         console.log(`${url}`)
         console.log( options['headers'] )
         // fetch(this.$data.url + "/trained-models", options).then((res) => {
         // proxy needed for cors
         fetch(url, options).then((res) => {
-          console.log("models received")
-          // console.log(res)
+          console.log("models received ${res}")
+          console.log(res)
           res.json().then((models) => {
             console.log(models)
             this.$data.models = models.filter( (m) => m.deployed == '1'  )
