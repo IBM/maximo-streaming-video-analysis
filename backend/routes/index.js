@@ -1,15 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const request = require('request')
-const hfc = require('fabric-client')
-const CAClient = require('fabric-ca-client')
 const fs = require('fs')
 const cors = require('cors')
 const _ = require('underscore')
 const util = require('util')
 const async = require('async')
 const exec = require('child_process').exec;
-const glob = require("glob")
+// const glob = require("glob")
 const path = require('path');
 const os = require('os');
 const fetch = require('node-fetch')
@@ -328,6 +326,7 @@ router.get('/inferences', function(req, res) {
   })
 });
 
+/*
 router.get('/custominferences', function(req, res) {
   console.log("getting custom inferences")
   var customInferences = []
@@ -343,6 +342,7 @@ router.get('/custominferences', function(req, res) {
   })
     // }
 });
+*/
 
 router.get('/inferencedetailed', function(req, res) {
   console.log("requesting detections for all inferences ")
