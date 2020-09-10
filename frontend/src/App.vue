@@ -97,9 +97,6 @@
 
             <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:530px">
               <template v-for="inference in inferences">
-                <!-- <template v-if="inference.classified.filter(value => selected_good_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
-
-                <!-- {"_negative_":"0.78148"} -->
 
                 <template v-if="checkClasses(inference, selected_good_labels, 'positive').length > 0">
                   <cv-tile style="width:95%;height:120px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})" :kind="inferenceTileKind">
@@ -160,18 +157,9 @@
             </div>
 
             <!-- <ccv-donut-chart style="padding: 10px;" :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart> -->
-          <!-- </div> -->
-        <!-- </cv-tile> -->
       </div>
     </div>
   </div>
-
-      <!-- <cv-button style="margin-right:10px;" id="snap" v-on:click="capture()">Analyze Frame</cv-button>           -->
-      <!-- <cv-button id="interval" style="margin-right: 10px" v-on:click="intervalCapture()">Start Image Analysis</cv-button>
-      <cv-button style="margin: 0px 10px; text-align: center" type="default" v-on:click="stopStream">Stop Analysis</cv-button>
-      <cv-button id="configure_interval" style="margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval</cv-button> -->
-      <!-- <Settings32  style="float:right" @click="showModal({'name': 'configure-interval-modal'})"/> -->
-      <!-- <CalendarSettings16/> -->
 
   <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
     <!-- <div class="bx--col-md-12">
@@ -218,78 +206,7 @@
   </div>
 
 </div>
-
-    <!-- <div class="bx--grid" style="width:90%;margin-top:40%">
-      <div class="bx--row">
-        <div class="bx--col">
-          <cv-tile>
-            Counts
-            <cv-data-table :columns="['Class', 'Count']" :data="Object.keys(counts).map((key) => [key, counts[key]])" ref="table"></cv-data-table>
-          </cv-tile>
-
-        </div>
-        <div class="bx--col">
-          <cv-tile>
-            <ccv-donut-chart :data='chartData' :options='chartOptions'></ccv-donut-chart>
-            {{chartData}}
-            <hr />
-          </cv-tile>
-        </div>
-      </div>
-    </div> -->
-
-    <!-- TODO finish testing grid -->
-
-      <!-- {{inferencesByCategory['negative']}} -->
-
-
-        <!-- <cv-data-table :columns="['']" :data="inferences"   ref="table"></cv-data-table> -->
-      <!-- {{ inferencesByCategory['positive'][ Object.keys(inferencesByCategory['positive'])[0] ] }} -->
-
-      <!-- <hr style="width:95%" />
-      Images with Positive Inferences
-      {{Object.keys(inferencesByCategory['positive']).length}}
-      <hr style="width:95%" />
-      Images with Negative Inferences
-      {{Object.keys(inferencesByCategory['negative']).length}}
-      <hr style="width:95%" />
-      {{inferencesByCategory['positive']}}
-      <hr style="width:95%" /> -->
-
-
-    <!-- </template> -->
-
-    <!-- TODO, style feed -->
-    <!-- <div style="width:45%">
-      {{inferences[0]}}
-      <template v-for="inference in inferences">
-
-        <div>
-          <div style="float:left">
-            <img style="width:120px;height:80px" :src=inference.canvas_url><img/>
-          </div>
-          <div style="float:right">
-            <h5>{{parseDate(inference.created_date)}}</h5>
-            <p>Classes {{inference.classified.map( cls => `${cls.label} ${cls.confidence}` ).join(',')}}</p>
-          </div>
-        </div>
-      </template>
-    </div> -->
-
-
-
-    <!-- <div v-if="inference_rows && (inference_rows.length > 0)">
-      Rendered Table Component
-      <template >
-        <inf-table inference_headers="inference_headers" inference_rows="inference_rows">
-        </inf-table>
-      </template>
-      End Rendered Table Component
-    </div> -->
     <div>
-
-
-
       <modal name="upload-modal" height="auto" style="z-index: 3000;">
           <h2 align="center"> Upload File </h2>
           <div style="margin-left: auto; margin-right: auto;width: 75%; padding: 10px;">
@@ -418,18 +335,6 @@
               type="password"
               placeholder="Password">
             </cv-text-input>
-
-            <!-- <cv-select label="Example select label">
-              <cv-select-option disabled selected hidden>Choose an option</cv-select-option>
-              <cv-select-optgroup label="Category 1">
-                <cv-select-option value="cv-select-option1">cv-select-option 1</cv-select-option>
-                <cv-select-option value="cv-select-option2">cv-select-option 2</cv-select-option>
-              </cv-select-optgroup>
-              <cv-select-optgroup label="Category 2">
-                <cv-select-option value="cv-select-option3">cv-select-option 3</cv-select-option>
-                <cv-select-option value="cv-select-option4">cv-select-option 4</cv-select-option>
-              </cv-select-optgroup>
-            </cv-select> -->
             <cv-button style="margin-bottom:10px;margin-top:10px;float:right">Submit</cv-button>
           </cv-form>
       </modal>
@@ -442,7 +347,6 @@
         <h2 align="center"> Image </h2>
         <div>
           <canvas id="image_canvas" v-overlay-image="inference"></canvas>
-          <!-- <img :src=src><img/> -->
         </div>
         <div>
           <vue-button type="default" v-on:click="hideModal({'name': 'view-image'})">Cancel</vue-button>
@@ -453,18 +357,6 @@
     <modal name="configure-model-modal" height="430px" style="z-index: 3000;" >
       <h2 align="center" style="margin-top:20px"> Configure Model </h2>
       <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="updateModelConfig">
-          <!-- <cv-text-input
-            label="Example text label"
-            helper-text="Optional helper text here; if message is more than one line text should wrap (~100 character count maximum)"
-            placeholder="Optional placeholder text">
-          </cv-text-input>
-          <cv-text-area
-            label="Example text label"
-            helper-text="Optional helper text here; if message is more than one line text should wrap (~100 character count maximum)"
-            placeholder="Optional placeholder text">
-          </cv-text-area> -->
-          <!-- <cv-select v-mode.lazy="selectedModel" label="Models"> -->
-
           <div style="height:80px;position: relative">
             <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme="" label="Select Model" :hide-label=true >
               <cv-select-option label="Select a Model" value="" :disabled=true>Select a Model</cv-select-option>
@@ -517,41 +409,6 @@
         </cv-form>
 
     </modal>
-
-    <!-- <div v-if="!isHidden" style="z-index:9000">
-      <vue-form
-        id="chaincode-form"
-        :model="form"
-        style="width: 75%; position: fixed; left: 50%; margin-left: -37.5%;">
-        <h2 style="float:center"> Invoke Chaincode </h2>
-        <vue-form-item label="Function">
-          <vue-input
-            placeholder="Function"
-            v-model="form.function"
-            style="width: 100%">
-          </vue-input>
-        </vue-form-item>
-
-        <vue-form-item label="Arguments">
-          <vue-input
-            placeholder="Arguments"
-            v-model="form.args"
-            style="width: 100%">
-          </vue-input>
-        </vue-form-item>
-        <vue-form-item>
-          <vue-button type="default" v-on:click="isHidden = true">Cancel</vue-button>
-          <vue-button type="success" v-on:click="invoke" >Submit</vue-button>
-        </vue-form-item>
-      </vue-form>
-    </div> -->
-    <!-- <vue-form-item> item 1 </vue-form-item>
-      <vue-form-item> item 2 </vue-form-item> -->
-    <!-- <vue-input placeholder="Please input"></vue-input>
-      <vue-input placeholder="Please input"></vue-input> -->
-
-
-    <!-- </v-app> -->
   </div>
 
 
@@ -571,14 +428,6 @@
   import {
     Button
   } from 'vfc'
-  // import DemoLoginModal       from './components/modals/DemoLoginModal.vue'
-
-  // import 'vue-js-modal'
-  // import { Card } from 'v-card'
-  // import { DataTable } from 'v-data-table'
-  // import { Button } from 'vfc'
-
-
 
   export default {
     name: 'app',
@@ -624,28 +473,19 @@
               if (inference.value['analysis_type'] == 'object_detection') {
                 console.log("drawing boxes")
                 inference.value['classified'].map( (o, idx) => {
-                  // context.rect(x,y,width,height)
-                  // ctx.rect(20, 20, 150, 100);
-                  // var ratio = 0.5 // 0.7220216606498195
-                  // var y_offset = -150
-
                   var tl_x = o['xmin'] * hRatio
                   var tl_y = (o['ymin'] * vRatio)
-
                   var w = (o['xmax'] - o['xmin']) * hRatio
                   var h = (o['ymax'] - o['ymin']) * vRatio
                   ctx.lineWidth = "6";
                   ctx.strokeStyle = colors[idx % colors.length];
                   ctx.fillStyle = colors[idx % colors.length];
-                  // ctx.strokeStyle = "blue";
                   console.log(`xmin ${o['xmin']}, ymax ${o['ymax']}, hRatio ${hRatio} vRatio ${vRatio}`)
                   console.log(`w ${w}, h ${h}, tl_x ${tl_x}, tl_y ${tl_y} ` )
                   ctx.beginPath()
                   ctx.font = "30px Arial";
                   ctx.fillText(o['label'], o['xmin'] + 20, o['ymin'] + 20)
                   ctx.rect( tl_x, tl_y, w, h )
-                  // ctx.rect( tl_x + centerShift_x, tl_y + centerShift_y, w, h )
-                  // ctx.rect( tl_x + centerShift_x, tl_y + centerShift_y + y_offset, w, h )
                   ctx.stroke()
                 })
               } else {
@@ -669,25 +509,11 @@
                 heatmap.style['z-index'] = 100
                 console.log("inference['value']")
                 console.log(inference['value'])
-                // if (inference['value']['ImageURL']) {
-                //   var s = inference['value']['ImageURL'].split('.')
-                //   var image_type = s[s.length - 1]
-                // }
-                // heatmap.src = 'data:image/' + image_type + ';base64,' + inference['value']['Heatmap/Boxes']
                 heatmap.src = inference['value']['heatmap']
               }
           }
-          // if (Object.keys(inference['value']).includes('ImageURL')) {
-          //   i.src = inference['value']['ImageURL']
-          // } else {
             console.log("writing thumbnail")
-            // console.log('data:image/' + 'png' + ';base64,' + inference['value']['Thumbnail'])
-            // i.src = 'data:image/' + 'png' + ';base64,' + inference['value']['Thumbnail']
-            // i.src = url + inference['value']['thumbnail_path']
             i.src = inference['value']['url'] + inference['value']['thumbnail_path']
-          // }
-
-          // console.log(`drawing image at ${inference['value']['ImageURL']}` )
           console.log(`canvasElement.width ${canvasElement.width}` )
           console.log(`canvasElement.height ${canvasElement.height}` )
       }
@@ -1315,7 +1141,7 @@
           // var threshold = 0.80
           var filtered_inference = inference.classified.filter( value =>
             (labels.includes(value.label.toLowerCase()) && ( (value.confidence * 100) > this.$data.threshold)) )
-          console.log(filtered_inference)
+          console.log(`filtered_inference ${filtered_inference} `)
           // this.$data.selected_labels[type] = filtered_inference
           if (filtered_inference.length > 0) {
             this.$data.inferencesByCategory[type][inference['_id']] = inference
@@ -1397,7 +1223,6 @@
             // this.$refs.canvas.style.visibility = 'hidden'
             this.canvas = this.$refs.stream_canvas;
             var canvas_url = this.canvas.toDataURL('png') //document.getElementById('stream_canvas').toDataURL('png')
-            console.log(canvas_url)
             // document.getElementById('testimg').src = canvas_url
             // var context = this.canvas.getContext("2d").drawImage(this.video, 0, 0, 640, 480);
             // var canvas_url = canvas.toDataURL("image/png")
@@ -1649,20 +1474,21 @@
         // this.$data.files.map((file, f_idx) => {
         // if ((modelInfo) && (modelInfo.usage == "cic") && (file.name.includes('mp4'))) {
 
-        if (false) {
-          console.log("posting video to classifier")
-          console.log("convert video to frames")
-          var headers = {
-            "X-Fragment-Video": "1",
-            // "X-File-Name": file.name,
-            "X-Proxy-URL": this.$data.url
+          if (false) {
+            // TODO, re-add if we split video to frames
+            console.log("posting video to classifier")
+            console.log("convert video to frames")
+            var headers = {
+              "X-Fragment-Video": "1",
+              // "X-File-Name": file.name,
+              "X-Proxy-URL": this.$data.url
+            }
+          } else {
+            // return
+            var headers = {
+              "X-Proxy-URL": this.$data.url
+            }
           }
-        } else {
-          // return
-          var headers = {
-            "X-Proxy-URL": this.$data.url
-          }
-        }
           var blobAppended = true
           var formData = new FormData()
           // var img = new Blob(canvas_url)
@@ -1721,6 +1547,11 @@
                   // if (Array.isArray(result.classified)) {
                   // ['usage'] == 'cic' // classification
                   // ['usage'] == 'cod' // object detection
+                  if (Array.isArray(result.classified) && (result.classified.length < 1) ) {
+                    console.log("skipping inference, no results detected")
+                    return
+                  }
+
                   if (this.$data.selectedModel.usage == 'cod') {
                     // object detection
                     var analysis_type = 'object_detection'
@@ -1782,9 +1613,6 @@
                   // {"webAPIId":"f1bdbfb5-7a55-402d-9cd4-3d7c16d1d8d4","imageUrl":"http://vision-v120-prod-service:9080/vision-v120-prod-api/uploads/temp/f1bdbfb5-7a55-402d-9cd4-3d7c16d1d8d4/d90d3ed3-8076-4cca-b2b9-b10ba331e9f3.png","imageMd5":"f9c7439db22cf5cea47d24453876cd14","classified":{"Pneumonia-Virus":"79.53754425048828"},"result":"success"}
                   // "classified":{"Pneumonia-Virus":"79.53754425048828"}
                 }
-
-
-                // "http://powerai-vision-ny-service:9080/powerai-vision-ny-api/uploads/temp/ee5f1177-7ff1-4cd5-86d2-60faca266c71/16acd8ad-2008-484b-8f7a-e669621852f3.jpg"
               }).catch((err) => {
                 console.log("error parsing json")
                 console.log(err)
