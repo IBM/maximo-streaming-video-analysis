@@ -29,6 +29,15 @@ This code pattern is targeted towards users who have access to live streams or C
 
 You will also need to train and deploy a custom model beforehand. This can be done following the steps in this [video](https://www.youtube.com/watch?v=-gzGuj3B__U)
 
+* ffmpeg: used here to connect to remote RTSP streams
+```
+# Linux
+apt install ffmpeg 
+
+# Macbook OS X
+brew install ffmpeg
+```
+
 * Node.js
 
 Skip to [Steps](#maximo-live-analysis) if you already have node.js installed on your system.
