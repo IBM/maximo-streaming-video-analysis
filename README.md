@@ -29,10 +29,12 @@ This code pattern is targeted towards users who have access to live streams or C
 
 You will also need to train and deploy a custom model beforehand. This can be done following the steps in this [video](https://www.youtube.com/watch?v=-gzGuj3B__U)
 
-* ffmpeg: used here to connect to remote RTSP streams
+* Docker - Can be used to run the application in a virtual container. If running via docker, the remaining prerequisites can be bypassed, and you can skip ahead to the steps labeled **docker** in [step 2](#2-start-application)
+
+* ffmpeg - Package used here to connect to remote RTSP streams
 ```
 # Linux
-apt install ffmpeg 
+apt install ffmpeg
 
 # Macbook OS X
 brew install ffmpeg
@@ -72,9 +74,9 @@ nvm use 8.9.0
 Follow these steps to setup and run this Code Pattern.
 
 1. [Clone repository](#1-clone-repository)
-2. [Start web application]
-3. [Configure web application]
-4. [Observe results]
+2. [Start web application](#2-start-application)
+3. [Configure web application](#3-configure-web-application)
+4. [Observe results](#4-observe-results)
 <!-- 5. [Create a Dashboard](#4-create-dashboard) -->
 
 ## 1. Clone repository
@@ -90,6 +92,7 @@ cd maximo-streaming-video-analysis
 
 ## 2. Start application
 
+**Local Deployment**
 Install frontend dependencies
 ```
 cd maximo-streaming-video-analysis
@@ -112,6 +115,18 @@ npm install
 Start backend
 ```
 PORT=3000 npm start
+```
+
+**Docker**
+Start Backend
+```
+docker run -it -p 3000:3000 kkbankol/maximo-live /bin/bash -c "cd /maximo-streaming-video-analysis/backend && PORT=3000 npm start"
+```
+
+Start frontend
+```
+# frontend
+docker run -it -p 8080:8080 kkbankol/maximo-live /bin/bash -c "cd /maximo-streaming-video-analysis/frontend && npm run serve"
 ```
 
 ## 3. Configure web application
