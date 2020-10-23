@@ -1,30 +1,15 @@
 import Vue from 'vue'
 import App from './App.vue'
 import VFC from 'vfc'
-import DataTable from 'v-data-table'
 import VModal from 'vue-js-modal'
+
 // import Modal from './components/Modal.vue'
 // import card from 'vue-card'
-import vSelect from 'vue-select'
 
-import 'vfc/dist/vfc.css'
-import './dist/json-tree.css'
-
-import TreeView from "vue-json-tree-view"
-import Vuetable from 'vuetable-2/src/components/Vuetable'
-import VuetablePagination from 'vuetable-2/src/components/VuetablePagination'
-import VuetablePaginationInfo from 'vuetable-2/src/components/VuetablePaginationInfo'
-import VCardElement from 'vue-card-element'
-import Vuetify from 'vuetify'
 // import 'vuetify/dist/vuetify.min.css'
 // import vuetify from './plugins/vuetify';
 // Vue.use(Vuetify)
 // import 'vuetify/dist/vuetify.min.css'
-
-
-import { MdButton, MdContent, MdTabs, MdCard, MdField, MdInput, MdTable, MdRipple } from 'vue-material/dist/components'
-// import {MdSelect, MdOption} from 'vue-material/src/components/MdField/MdSelect'
-// import 'vue-material/src/components/MdField'
 
 
 import 'vue-material/dist/vue-material.min.css'
@@ -74,21 +59,12 @@ import {CvModal, CvList, CvSelect, CvFileUploader, CvDataTable, CvAccordion, CvA
 
 Vue.use(Drag)
 Vue.component('drag', Drag)
-Vue.use(DataTable)
+// Vue.component('v-select', vSelect)
 
-// Vue.use(MdButton)
-// Vue.use(MdContent)
-// Vue.use(MdCard)
-// Vue.use(MdTabs)
-// Vue.use(MdField)
-// Vue.use(MdRipple)
-// Vue.use(MdTable)
-Vue.component('v-select', vSelect)
-
-Vue.component("vuetable", Vuetable);
-Vue.component("vuetable-pagination", VuetablePagination);
+// Vue.component("vuetable", Vuetable);
+// Vue.component("vuetable-pagination", VuetablePagination);
 // Vue.component("vuetable-pagination-dropdown", VuetablePaginationDropDown);
-Vue.component("vuetable-pagination-info", VuetablePaginationInfo);
+// Vue.component("vuetable-pagination-info", VuetablePaginationInfo);
 
 Vue.config.productionTip = false
 

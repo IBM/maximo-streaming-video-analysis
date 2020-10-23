@@ -5,17 +5,20 @@
   <div id="app">
     <div>
       <h1>
-        IBM Maximo Sample Application
+        IBM Maximo Sample Video Analyzer
       </h1>
     </div>
 
     <div id="menu" style="margin-top:40px; margin-bottom:40px">
       <div >
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'login-modal', 'title': 'Login'})">Login</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'})">Configure Model</CvButton>
+        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'}) ; getModels()">Configure Model</CvButton>
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-configured-models'})">View Configured Models</CvButton> -->
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
+        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
+        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton>
+        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="getModels()">Get Models</CvButton>
       </div>
     </div>
 
@@ -30,7 +33,10 @@
         <cv-tile>
 
 
-        <div style="top:0;left:0;right:0;margin:auto;width: 50%;position:relative">
+        <div ref="videoHeader" style="height:50px;margin-bottom:20px; top:0;left:0;right:0;margin:auto;width: 50%;position:relative">
+
+          <p> {{instructionsROI}} <p>
+
           <div style="margin:auto;width: 50%;position:relative">
             <cv-inline-loading
               style="width:180px"
@@ -38,32 +44,82 @@
               :loading-text="loadingText"
             </cv-inline-loading>
           </div>
-
-        </div>
-        <div style="width: 120%;height:480px;">
-          <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <video muted loop controls @ended="restartStream()" style="z-index: 10;width: 100%;height:480px;" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
-          </div>
-          <div style="visibility: hidden;width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <video muted loop controls @ended="restartStream()"  style="z-index: 5;width: 100%;height:480px;" crossorigin="anonymous" ref="remote_video" id="remote_video"  height="480" autoplay></video>
-          </div>
-          <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <canvas style="width: 100%;height:480px;z-index: 9;visibility: hidden" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas"  width="640" height="480" ></canvas>
-          </div>
-          <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <canvas style="z-index: 0; visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480" ></canvas>
-          </div>
         </div>
 
-      <div>
-        <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="capture">Capture Frame And Analyze</cv-button>
-      </div>
-      <div >
-        <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
-        <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
-        <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
-      </div>
+        <div style="height:480px">
+            <!-- TODO, should only need a single video/canvas..caveats are
+            1. Cannot capture frames from remote video unless we proxy it through backend w/CORS headers
+            2. Need backend with ffmpeg
+            3. Webcam streams to canvas
+            -->
 
+            <!-- Uploaded video -->
+            <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
+              <video muted loop @ended="restartStream()" style="z-index: 10;width: 100%;height:480px;" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
+            </div>
+
+            <!-- Remote video -->
+            <div ref="remote_video_div" id="remote_video_div" style="visibility: hidden;width: 100%;height:100%;position:absolute;top: 30%; right: 0; bottom: 0; left: 0;margin: auto;">
+              <video muted loop @ended="restartStream()"  style="z-index: 5;width: 100%;" crossorigin="anonymous" ref="remote_video" id="remote_video"  autoplay></video>
+            </div>
+
+            <!-- RTSP -->
+            <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
+              <canvas style="width: 100%;height:480px;z-index: 9;visibility: hidden" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas"  width="640" height="480" ></canvas>
+            </div>
+
+            <!-- Webcam -->
+            <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
+              <canvas style="z-index: 0; visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" ></canvas>
+            </div>
+
+            <!-- Overlay canvas to draw ROIs -->
+            <div style="z-index: 150;width: 100%;height:50%; position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_draw_div" id="canvas_draw_div">
+              <canvas @mousemove="hover"  @click="draw" style="width:100%;z-index: 150;" ref="canvas_draw" id="canvas_draw"></canvas>
+              <!-- @mouseover="hover"  -->
+            </div>
+
+            <!-- Overlay canvas to draw user cursor, show rectangle to be drawn -->
+            <div style="width: 100%;height:50%; position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_cursor_div" id="canvas_cursor_div">
+              <canvas style="width:100%;z-index: 99" ref="canvas_cursor" id="canvas_cursor"></canvas>
+            </div>
+
+
+            <!-- Canvas to show good labels -->
+            <div style="width: 100%;height:50%; position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_good_draw_div" id="canvas_good_draw_div">
+              <canvas style="width:100%;z-index: 99;" ref="canvas_good" id="canvas_good"></canvas>
+            </div>
+
+            <!-- Canvas to show bad labels -->
+            <div style="width: 100%;height:50%; position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_bad_draw_div" id="canvas_bad_draw_div">
+              <canvas style="width:100%;z-index: 99" ref="canvas_bad" id="canvas_bad"></canvas>
+            </div>
+
+<!-- xmax: 427
+xmin: 309
+ymax: 278
+ymin: 182 -->
+
+            <!-- Below "works" but box is too small. And resizing breaks it -->
+            <!-- <div style="border:dotted;border-color:green;width: 100%;position:absolute;top: 75px; right: 0; bottom: 0; left: 0;margin: auto;">
+              <canvas @mouseover="adjustRec" @click="draw" style="z-index: 100;border:dotted;border-color:red" ref="canvas_draw" id="canvas_draw"></canvas>
+            </div> -->
+
+
+        </div>
+
+        <div>
+          <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="capture">Capture Frame And Analyze</cv-button>
+        </div>
+        <div >
+          <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
+          <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
+          <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
+        </div>
+
+        <div>
+          <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="drawROI()">Draw ROI</cv-button>
+        </div>
             <!-- <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 5; " crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
             <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 0;position: absolute; left: 50%; transform: translate(-50%, 0); " crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
             <canvas style="width: 640px;height:480px;z-index: 2000;position: absolute; left: 50%; transform: translate(-50%, 0);" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" width="640" height="480" ></canvas>
@@ -90,7 +146,7 @@
               <template v-for="label in selected_good_labels">
                 <cv-tag
                 :label="label"
-                :kind="gray"
+                kind="gray"
                 ></cv-tag>
               </template>
             </div>
@@ -165,10 +221,23 @@
     <!-- <div class="bx--col-md-12">
       <ccv-donut-chart :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart>
     </div> -->
-    <div class="bx--col-md-12">
+    <div class="bx--col-md-4">
+      <cv-data-table title="Alerts" :zebra=true :columns="['Type', 'Date', 'Classes', 'Priority']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
+        <template v-if="use_htmlData" slot="data">
+          <cv-data-table-row v-for="(row, rowIndex) in alerts" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
+            <cv-data-table-cell><input type="text" :value="row['type']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+            <cv-data-table-cell><input type="text" :value="row['date']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+            <cv-data-table-cell><input type="text" :value="row['classes']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+            <cv-data-table-cell><input type="text" :value="row['priority']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+          </cv-data-table-row>
+        </template>
+      </cv-data-table>
+    </div>
+
+    <div class="bx--col-md-8">
       <template v-if="inferences.length > 0">
-        <div style=;height:600px;overflow-y:auto;>
-          <cv-data-table :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
+        <div style=height:600px;overflow-y:auto;>
+          <cv-data-table title="Inferences" :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
             <template v-if="use_htmlData" slot="data">
 
                 <cv-data-table-row v-for="(row, rowIndex) in inferences" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
@@ -200,6 +269,7 @@
         <cv-data-table-skeleton
           :columns="['Type', 'Date', 'Classes', 'Model']"
           :rows=3
+          title="Inferences"
           ></cv-data-table-skeleton>
       </template>
     </div>
@@ -211,8 +281,8 @@
           <h2 align="center"> Upload File </h2>
           <div style="margin-left: auto; margin-right: auto;width: 75%; padding: 10px;">
             <cv-file-uploader
-              :accept="['.mp4']"
-              :multiple=false
+              :accept="['.mp4', '.jpg', '.jpeg', '.png']"
+              :multiple=true
               ref="fileUploader">
             </cv-file-uploader>
           </div>
@@ -221,13 +291,126 @@
           </div>
       </modal>
 
+      <modal name="add-rule" height="auto" style="z-index: 3000;">
+        {{alerts}}
+        <h2 text-align="center">Configure Alerts</h2>
+        <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="addAlert">
+          <cv-text-input
+            label="Title"
+            v-model="alertTitle"
+            >
+          </cv-text-input>
+
+          <cv-multi-select
+            v-model="alertExistingLabels"
+            :label="alertExistingLabels.join(',')"
+            title="Existing Objects"
+            selection-feedback="top-after-reopen"
+            :inline=false
+            :filterable=true
+            :auto-filter=true
+            :auto-highlight=true
+            :options="good_labels">
+          </cv-multi-select>
+
+          <cv-multi-select
+            v-model="alertMissingLabels"
+            :label="alertMissingLabels.join(',')"
+            :inline=false
+            title="Missing Objects"
+            selection-feedback="top-after-reopen"
+            :filterable=true
+            :auto-filter=true
+            :auto-highlight=true
+            :options="good_labels">
+          </cv-multi-select>
+
+          <!-- TODO, add multiple ROIs -->
+          <!-- <cv-multi-select
+            v-model="selected_labels"
+            :label="selected_labels.join(',')"
+            :inline=false
+            title="Select ROI(s)"
+            selection-feedback="top-after-reopen"
+            :filterable=true
+            :auto-filter=true
+            :auto-highlight=true
+            :options="drawnRois">
+          </cv-multi-select> -->
+
+          <!-- TODO, add actions -->
+          <!-- <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme=""
+            label="Bind Action" :inline=false >
+            <cv-select-option label="Select Action" value="" :disabled=true>Priority</cv-select-option>
+            <cv-select-option v-for="action in actions"></cv-select-option>
+          </cv-select> -->
+
+          <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;"
+            v-model="alertPriority" ref="alertPrioritySelector" theme="" title="Bind Action" :hide-label=true :inline=false >
+            <cv-select-option label="Set Priority" value="" :disabled=true>Priority</cv-select-option>
+            <cv-select-option label="High" value="high">High</cv-select-option>
+            <cv-select-option label="Medium" value="medium">Medium</cv-select-option>
+            <cv-select-option label="Low" value="low">Low</cv-select-option>
+          </cv-select>
+
+          <cv-button style="margin-top:30px;margin-bottom:20px;margin-right:20px;float:right" v-on:click="hideModal({'name': 'add-rule'})">Confirm</cv-button>
+        </cv-form>
+      </modal>
+
+
+      <modal name="add-action" height="auto" style="z-index: 3000;">
+        <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="hideModal({name: 'add-action'})">
+          <h2>Configure Actions</h2>
+        <!-- <div> -->
+          <cv-text-input
+            v-model="actionTitle"
+            label="Title">
+          </cv-text-input>
+        <!-- </div> -->
+          <!-- Let do API calls to keep it simple -->
+        <!-- <div> -->
+          <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme=""
+            label="Method" :inline=false >
+            <cv-select-option label="POST" value="POST">POST</cv-select-option>
+            <cv-select-option label="GET" value="GET">GET</cv-select-option>
+            <cv-select-option label="PUT" value="PUT">PUT</cv-select-option>
+          </cv-select>
+        <!-- </div> -->
+
+        <!-- <div> -->
+          <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" label="Bind Action"
+            v-model="alertPriority" ref="alertPrioritySelector" theme="" title="Bind Action" :hide-label=true :inline=false >
+            <cv-select-option label="Select Priority" value="" :disabled=true>Priority</cv-select-option>
+            <cv-select-option label="High" value="high">High</cv-select-option>
+            <cv-select-option label="Medium" value="medium">Medium</cv-select-option>
+            <cv-select-option label="Low" value="low">Low</cv-select-option>
+          </cv-select>
+        <!-- </div> -->
+
+          <!-- <cv-number-input
+            style="margin-left:25%;margin-top:25px"
+            label="Analysis Interval (Seconds)"
+            v-model="interval"
+            :step=cv_number_step
+            :min=cv_number_min
+            >
+          </cv-number-input> -->
+        <!-- <div> -->
+          <cv-button style="margin-top:30px;margin-bottom:20px;margin-right:20px;float:right" v-on:click="hideModal({'name': 'configure-interval-modal'})">Confirm</cv-button>
+        <!-- </div> -->
+        </cv-form>
+      </modal>
+
+
       <modal name="show-inference" height="auto" style="z-index: 4000;">
         <!-- <cv-tile kind="clickable" style="float:center"> -->
           <h2 align="center"> Inference </h2>
           <h5 align="center"> {{parseDate(inference.created_date)}} </h5>
 
           <!-- <img :src="url + inference['thumbnail_path']"/> -->
-          <canvas id="image_canvas" v-overlay-image="inference"></canvas>
+          <div style="width: 50%; margin: 0 auto;;">
+            <canvas id="image_canvas" v-overlay-image="inference"></canvas>
+          </div>
           <template v-if="Object.keys(inference).includes('classified')">
             <div style="margin:auto; width: 50%;margin-bottom:20px">
               <template v-if="inference['analysis_type'] == 'object_detection'" >
@@ -251,8 +434,8 @@
             style="margin-left:25%;margin-top:25px"
             label="Analysis Interval (Seconds)"
             v-model="interval"
-            :step=1
-            :min=1
+            :step=cv_number_step
+            :min=cv_number_min
             >
           </cv-number-input>
 
@@ -322,7 +505,7 @@
             <cv-text-input
               label="URL"
               placeholder="URL"
-              v-model="url">
+              v-model="mviUrl">
             </cv-text-input>
             <cv-text-input
               label="Username"
@@ -345,7 +528,7 @@
     <div style="margin: 0; position: absolute; top: 50%; left: 50%;z-index: 3000;" >
       <modal name="view-image" height="auto" >
         <h2 align="center"> Image </h2>
-        <div>
+        <div style="width: 50%; margin: 0 auto;">
           <canvas id="image_canvas" v-overlay-image="inference"></canvas>
         </div>
         <div>
@@ -353,6 +536,9 @@
         </div>
       </modal>
     </div>
+
+
+
 
     <modal name="configure-model-modal" height="430px" style="z-index: 3000;" >
       <h2 align="center" style="margin-top:20px"> Configure Model </h2>
@@ -373,7 +559,7 @@
                 :label="selected_good_labels.join(',')"
                 :inline=false
                 helper-text="Good labels"
-                selection-feedbak="top-after-reopen"
+                selection-feedback="top-after-reopen"
                 :filterable=true
                 :auto-filter=true
                 :auto-highlight=true
@@ -440,8 +626,8 @@
       overlayImage: function(canvasElement, inference, url, opacity=1.0) {
           // Get canvas context
           var ctx = canvasElement.getContext("2d");
-          var can_w = ctx.canvas.width
-          var can_h = ctx.canvas.height
+          var can_w = 640 // ctx.canvas.width
+          var can_h = 480 // ctx.canvas.height
           var colors = ['red', 'blue', 'green', 'yellow', 'purple']
           var heatmap = new Image
           heatmap.id = "heatmap"
@@ -450,19 +636,25 @@
           i.id = "image"
           i.onload = function() {
               console.log("creating thumbnail canvas image")
-              var img_w = this.width
-              var img_h = this.height
-              var can_w = ctx.canvas.width //= 400
-              var can_h = ctx.canvas.height //= 500
-              // var hRatio = canvasElement.width / img_w    ;
-              // var vRatio = canvasElement.height / img_h  ;
-              console.log(`img_h ${img_h} img_w ${img_w} can_w ${can_w} can_h ${can_h}`)
-              var vRatio = 1
-              var hRatio = 1
+              // define image and canvas overlay dimensions
+              var img_w = 640 //this.width
+              var img_h = 480 //this.height
+              var can_w = 640 //ctx.canvas.width //width //= 400
+              var can_h = 480 //ctx.canvas.height //height //= 500
+              ctx.canvas.width = 640
+              ctx.canvas.height = 480
 
-              ctx.canvas.width = img_w
-              ctx.canvas.height = img_h
+              var hRatio = img_w / inference.value.width;
+              var vRatio = img_h / inference.value.height  ;
+
+              // var hRatio = img_w / canvasElement.width;
+              // var vRatio = img_h / canvasElement.height  ;
+              console.log(`img_h ${img_h} img_w ${img_w} can_w ${can_w} can_h ${can_h}`)
+              // var vRatio = 1
+              // var hRatio = 1
+
               console.log(`img_h ${img_h} img_w ${img_w} can_w ${ctx.canvas.width} can_h ${ctx.canvas.height}`)
+              console.log(`hRatio ${hRatio} vRatio ${vRatio}`)
               var ratio = Math.min ( hRatio, vRatio )
               console.log('ratio')
               console.log(ratio)
@@ -484,7 +676,7 @@
                   console.log(`w ${w}, h ${h}, tl_x ${tl_x}, tl_y ${tl_y} ` )
                   ctx.beginPath()
                   ctx.font = "30px Arial";
-                  ctx.fillText(o['label'], o['xmin'] + 20, o['ymin'] + 20)
+                  ctx.fillText(o['label'], (o['xmin'] * hRatio) + 20, (o['ymin'] * vRatio) + 20)
                   ctx.rect( tl_x, tl_y, w, h )
                   ctx.stroke()
                 })
@@ -512,8 +704,9 @@
                 heatmap.src = inference['value']['heatmap']
               }
           }
-            console.log("writing thumbnail")
-            i.src = inference['value']['url'] + inference['value']['thumbnail_path']
+          console.log("loading thumbnail")
+          // i.src = inference['value']['url'] + inference['value']['thumbnail_path']
+          i.src = inference.value.canvas_url
           console.log(`canvasElement.width ${canvasElement.width}` )
           console.log(`canvasElement.height ${canvasElement.height}` )
       }
@@ -521,6 +714,36 @@
 
     data() {
       return {
+        previewRect: false,
+        previewCursor: false,
+        alertPriority: "",
+        actionTitle: "",
+        alerts: [],
+        // TODO, set Backend Proxy URL and PAIV URL seperate
+        mviUrl: (localStorage['paiv_url'] || process.env.VUE_MVI_URL),
+        proxyServerIp: process.env.VUE_APP_PROXY_IP || `${window.location.protocol}//${window.location.hostname}`,
+        proxyServerPort: process.env.VUE_APP_PROXY_PORT || 3000,
+        alerts: [],
+        instructionsROI: "",
+        stillImages: [],
+        alertTitle: "",
+        alertExistingLabels: [],
+        alertMissingLabels: [],
+        edge: true, //process.env.VUE_APP_EDGE || false,
+        drawing: false,
+        recStart: {},
+        drawnRois: [],
+        recEnd: {},
+        recBoundingBoxes: {},
+        roiWidth: 0,
+        cv_number_step: 1,
+        cv_number_min: 1,
+        cv_slider_max: 100,
+        cv_slider_min: 0,
+        cv_slider_value: 70,
+        cv_slider_step: 1,
+        selected_labels: [],
+        roiHeight: 0,
         loadingText: "",
         loadingState: "none",
         form: {
@@ -584,15 +807,7 @@
           }
         }],
         chartData: [
-        		{ "group": "placeholder placeholder placeholder", "value": 100}
-            // { "group": "Bird Guards", "value": 12000},
-            // { "group": "Conductor Damaged", "value": 12000},
-            // { "group": "Conductor Good", "value": 12000},
-            // { "group": "Cotter Pin Missing_Loose", "value": 12000},
-            // { "group": "Connectors Corroded", "value": 12000},
-            // { "group": "Glass Insulators Broken", "value": 12000},
-            // { "group": "Glass Insulators Contaminated", "value": 12000},
-            // { "group": "Dampers Damaged", "value": 12000}
+        		{ "group": "placeholder", "value": 100}
         ],
         chartOptions: {
       		// "title": "Results by Category",
@@ -681,14 +896,13 @@
         circleGraphData: [],
         activeFilters: {},
         sortAscending: true, //
-        url: (localStorage['paiv_url'] || process.env.VUE_APP_URL),
         username: (localStorage['paiv_user'] || process.env.VUE_APP_USER),
         password: (localStorage['paiv_password'] || process.env.VUE_APP_PASSWORD),
         css: {
           table: {
             tableWrapper: '',
             tableHeaderClass: 'fixed',
-            tableBodyClass: 'vuetable-semantic-no-top fixed',
+            tableBodyClass: 'fixed',
             tableClass: 'ui blue selectable unstackable celled table',
             loadingClass: 'loading',
             ascendingIcon: 'blue chevron up icon',
@@ -711,6 +925,8 @@
         good_labels: [],
         bad_labels: [],
         categories: [],
+        cv_tag_label: "label",
+        cv_tag_kind: "gray",
         modelConfigs: {},
         mobile_inference_headers: [
           "Thumbnail",
@@ -767,9 +983,9 @@
     beforeMount() {
       // this.getInferences()
       this.$data.token = localStorage.getItem('token')
-      this.$data.url = localStorage.getItem('url')
+      this.$data.mviUrl = localStorage.getItem('mviUrl')
       let recaptchaScript = document.createElement('script')
-      recaptchaScript.setAttribute('src', 'http://localhost:3000/scripts/jsmpeg.min.js')
+      recaptchaScript.setAttribute('src', `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/scripts/jsmpeg.min.js`)
       document.head.appendChild(recaptchaScript)
 
     },
@@ -785,14 +1001,237 @@
               this.video.play();
           });
       }
-      if (this.$data.token) {
+      if (this.$data.token || (this.$data.edge && this.$data.mviUrl) ) {
         console.log("previous token loaded")
         // TODO, add regex to check token. also add last time token was refreshed
         this.getModels()
       }
+
+      if (localStorage.getItem('modelConfigs')) {
+        console.log("loading model configs")
+        // this.$data.modelConfigs = JSON.parse(localStorage.getItem('modelConfigs'))
+      }
+
+      var canvas = this.$refs.canvas_draw
+      canvas.width = canvas.offsetWidth
+      canvas.height = canvas.offsetHeight
+
+      var topMargin = canvas.offsetTop + "px"
+      this.adjustDrawCanvas(canvas.offsetWidth, canvas.offsetHeight, topMargin)
+
+      let debug = true
+      if (debug) {
+        this.$refs.canvas_bad_draw_div.style.border = 'dotted'
+        this.$refs.canvas_bad_draw_div.style.borderColor = 'red'
+
+        this.$refs.canvas_good_draw_div.style.border = 'dotted'
+        this.$refs.canvas_good_draw_div.style.borderColor = 'green'
+
+        this.$refs.canvas_draw.style.border = 'dotted'
+        this.$refs.canvas_draw.style.borderColor = 'blue'
+
+        this.$refs.videoHeader.style.border = 'dotted'
+
+      }
+      // document.getElementById('canvas_draw').style.height
+      // this.$refs.canvas_draw.style.height = this.$refs.canvas.style.height
+      // this.$refs.canvas_draw.style.width = this.$refs.canvas.style.width
+
       // this.getInferenceDetails();
     },
     methods: {
+      addAlert() {
+        let alert = {
+          alertTitle: this.$data.alertTitle,
+          alertExistingLabels: this.$data.alertExistingLabels,
+          alertMissingLabels: this.$data.alertMissingLabels,
+          alertPriority: this.$data.alertPriority
+        }
+        console.log("adding alert")
+        console.log(alert)
+        this.$data.alerts.push(alert)
+      },
+      adjustRec(ev) {
+        console.log("adjusting rectangle")
+        var canvas = this.$refs.canvas_draw
+        var width = canvas.offsetWidth
+        var height = canvas.offsetHeight
+        var ctx = canvas.getContext("2d")
+        var ctxCoords = canvas.getBoundingClientRect()
+        var mouseX = ev.clientX - ctxCoords.left  // ev.layerX //width - ev.
+        var mouseY = ev.clientY - ctxCoords.top
+
+        console.log(`mouseX ${mouseX}`)
+        console.log(`mouseY ${mouseY}`)
+
+      },
+      hover(ev) {
+        //
+        var canvas = this.$refs.canvas_cursor
+        console.log("hovering canvas")
+
+        // canvas.width = canvas.offsetWidth
+        // canvas.height = canvas.offsetHeight
+        var ctx = canvas.getContext("2d")
+        var ctxCoords = canvas.getBoundingClientRect()
+        var mouseX = ev.clientX - ctxCoords.left  // ev.layerX //width - ev.
+        var mouseY = ev.clientY - ctxCoords.top
+
+
+        if (false) { // (this.$data.drawing) {
+          console.log("previewing rectangle")
+          // ctx.arc(mouseX, mouseY, 2, 0, 2 * Math.PI);
+
+          ctx.clearRect(0,0, canvas.width, canvas.height)
+          ctx.beginPath();
+
+          let recStartX = this.$data.recStart['x']
+          let recStartY = this.$data.recStart['y']
+
+          /*
+          if (recStartY > mouseY) {
+            var yStart = recStartY
+            var yEnd = mouseY
+          } else {
+            var yStart = mouseY
+            var yEnd = recStartY
+          }
+
+          if (recStartX > mouseX) {
+            var xStart = recStartX
+            var xEnd = mouseX
+          } else {
+            var xStart = mouseX
+            var xEnd = recStartX
+          }
+          let recWidth = xEnd - xStart
+          let recHeight = yEnd - yStart
+          */
+
+          //
+          // ctx.scale(-1, 1)
+          // console.log(`xStart ${xStart} yStart ${yStart}`)
+          console.log(`mouseX ${mouseX} mouseY ${mouseY}`)
+
+          let recWidth = mouseX - recStartX
+          let recHeight = mouseY - recStartY
+          console.log(`recWidth ${recHeight} recHeight ${recHeight}`)
+          ctx.rect(recStartX, recStartY, recWidth, recHeight)
+          ctx.stroke();
+          console.log("drew preview rectangle")
+        } else if (this.$data.previewCursor) {
+          console.log("updating cursor")
+          ctx.clearRect(0,0, canvas.width, canvas.height)
+          ctx.beginPath();
+          ctx.arc(mouseX, mouseY, 2, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
+
+      },
+
+      drawROI() {
+        console.log("user clicked draw roi")
+        this.$data.instructionsROI = "Click point on video stream to begin drawing ROI"
+        var canvas = this.$refs.canvas_cursor
+        var ctx = canvas.getContext("2d")
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "white";
+        ctx.fillText("Click to begin drawing", canvas.offsetWidth / 2, 5)
+        ctx.stroke()
+        this.$data.previewCursor = true
+        // ctx.beginPath();
+        // ctx.arc(mouseX, mouseY, 5, 0, 2 * Math.PI);
+        // ctx.stroke();
+
+        // this.$refs.canvas_draw.
+      },
+      startRectangle() {
+        console.log("starting rectangle")
+      },
+      endRectangle() {
+        console.log("ending rectangle")
+      },
+      draw(ev) {
+        this.$data.drawing = ! this.$data.drawing
+        console.log(ev)
+        console.log("----drawing----")
+        var canvas = this.$refs.canvas_draw
+        // canvas.width = canvas.offsetWidth
+        // canvas.height = canvas.offsetHeight
+        var width = canvas.offsetWidth
+        var height = canvas.offsetHeight
+        this.$data.roiWidth = width
+        this.$data.roiHeight = height
+        // TODO, this breaks the inference modal view, removing for now
+        // canvas.width = canvas.offsetWidth
+        // canvas.height = canvas.offsetHeight
+        var ctx = canvas.getContext("2d")
+        var ctxCoords = canvas.getBoundingClientRect()
+        console.log(`coords \n\nctxCoords.left ${ctxCoords.left} \nctxCoords.right ${ctxCoords.right} \ntop ${ctxCoords.top} \nbottom ${ctxCoords.bottom} `)
+        // var mouseX = ev.layerX //clientX
+        // var mouseY = ev.layerY //clientY
+        console.log(`width ${width} height ${height}`)
+        console.log(`ev.pageX ${ev.pageX} ev.offsetX ${ev.offsetX} `)
+        console.log(`ev.pageY ${ev.pageY} ev.offsetY ${ev.offsetY} `)
+        console.log(`ev.layerX ${ev.layerX} ev.layerY ${ev.layerY} `)
+        console.log(`ev.clientX ${ev.clientX} ev.clientY ${ev.clientY} `)
+        console.log(`ev.screenX ${ev.screenX} ev.screenY ${ev.screenY} `)
+
+        var xRatio = this.$refs.canvas_draw.width
+        var yRatio = this.$refs.canvas_draw.height
+        // ctx.beginPath();
+        // ctx.rect(10, 10, 20, 20)
+        // ctx.stroke();
+
+
+        var mouseX = ev.clientX - ctxCoords.left  // ev.layerX //width - ev.
+        var mouseY = ev.clientY - ctxCoords.top
+
+        // var mouseX = ev.pageX - ev.offsetX
+        // var mouseY = ev.pageY - ev.offsetY
+
+        // var mouseX = ev.pageX - ctxCoords.left  // ev.layerX //width - ev.
+        // var mouseY = ev.pageY - ctxCoords.top
+
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, 5, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        console.log(`mouseX ${mouseX}`)
+        console.log(`mouseY ${mouseY}`)
+        // start new rectangle
+
+        if (! this.$data.drawing) {
+          console.log(`---- starting new rectangle at points ${mouseX} ${mouseY}`)
+          ctx.clearRect(0,0,width, height)
+          // ctx.beginPath();
+          this.$data.recStart = {'x': mouseX, 'y': mouseY}
+          // ctx.rect(20, 20, 100, 100);
+        // end rectangle
+        } else {
+          console.log(`---- ending rectangle at points ${mouseX} ${mouseY}`)
+          this.$data.recEnd = {'x': mouseX, 'y': mouseY}
+          // calculate bounding boxes
+          let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+          let maxX = Math.max(this.$data.recEnd['x'], this.$data.recStart['x'])
+          let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+          let maxY = Math.max(this.$data.recEnd['y'], this.$data.recStart['y'])
+          this.$data.recBoundingBoxes = {
+            xmin: minX,
+            xmax: maxX,
+            ymin: minY, // remember in canvas, y starts from top, so it is technically inverted
+            ymax: maxY
+          }
+          ctx.strokeStyle = "blue";
+          let recWidth = maxX - minX
+          let recHeight = maxY - minY
+          console.log(`minX ${minX} maxX ${maxX}`)
+          console.log(`minY ${minY} maxY ${maxY}`)
+          console.log(`recWidth ${recWidth} recHeight ${recHeight}`)
+          ctx.rect(minX, minY, recWidth, recHeight)
+          ctx.stroke();
+        }
+      },
       showTooltip(ev) {
         console.log(ev)
       },
@@ -828,6 +1267,41 @@
         return `${parsedDate.getYear()}/${parsedDate.getMonth()}/${parsedDate.getDay()} ${parsedDate.getHours()}:${parsedDate.getMinutes()}:${parsedDate.getSeconds()}`
 
       },
+      mergeImagesToVideo(stillImages, formData) {
+        // this.$data.stillImages
+        let options = {
+          method: "POST",
+          body: formData
+        }
+        let url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/mergeframes`
+        console.log(url)
+        fetch(url, options).then( (res) => {
+          res.blob().then( (vid) => {
+             console.log("received merged video")
+             let localUrl = URL.createObjectURL(vid)
+             this.$refs.remote_video.src = localUrl
+             console.log(localUrl)
+          })
+        })
+      },
+      adjustDrawCanvas(vidWidth, vidHeight, topMargin) {
+        // var vidWidth = that.$refs.remote_video.offsetWidth
+        // var vidHeight = that.$refs.remote_video.offsetHeight
+        // var topMargin = that.$refs.remote_video_div.offsetTop + "px"
+
+        // that.$refs.canvas_draw.width = vidWidth
+        // that.$refs.canvas_draw.height = vidHeight
+        // document.getElementById('canvas_draw_div').style.top
+        console.log(`vidWidth ${vidWidth} vidHeight ${vidHeight}`)
+        this.$refs.canvas_draw_div.style.top = topMargin
+        this.$refs.canvas_good.width = vidWidth
+        this.$refs.canvas_bad.width = vidWidth
+        this.$refs.canvas_good_draw_div.height = vidHeight
+        this.$refs.canvas_bad_draw_div.height = vidHeight
+        this.$refs.canvas_good_draw_div.style.top = topMargin
+        this.$refs.canvas_bad_draw_div.style.top = topMargin
+
+      },
       uploadFile() {
         this.$data.streamingType = "file"
         this.$data.isStreaming = true
@@ -836,12 +1310,74 @@
         this.$refs.remote_video.style['z-index'] = 2000
         this.$data.videoPlaying = true
 
-        let file = this.$refs.fileUploader.internalFiles[0].file
-        console.log(this.$refs.fileUploader.internalFiles)
-        console.log(file)
-        let localUrl = window.URL.createObjectURL(file)
-        this.$data.localFileSrc = localUrl
-        this.$refs.remote_video.src = localUrl
+
+        var formData = new FormData()
+
+        var files = this.$refs.fileUploader.internalFiles
+        var stillImages = []
+        files.map( (file, idx) =>  {
+          console.log(file)
+          let fileType = file.file.type
+          let isImage = ((fileType.includes('png')) || (fileType.includes('jpg')) || (fileType.includes('jpeg')))
+          if (isImage) {
+            console.log("handling still image")
+            console.log(file)
+            let localUrl = window.URL.createObjectURL(file.file)
+            console.log(localUrl)
+            console.log(file)
+            this.$data.localFileSrc = localUrl
+            // this.$refs.remote_video.poster = localUrl
+            // this.$data.stillImages.push(file.file)
+            stillImages.push(file.file)
+            formData.append(`file${idx}`, file.file, file.file.name)
+            if (idx == (files.length - 1) ) {
+              console.log("merging still images")
+              // post still images to backend to create video/slideshow
+              this.mergeImagesToVideo(stillImages, formData)
+            }
+          } else {
+            console.log("video uploaded, playing")
+            let localUrl = window.URL.createObjectURL(file.file)
+            this.$data.localFileSrc = localUrl
+            this.$refs.remote_video.src = localUrl
+          }
+        })
+
+        var that = this;
+        // adjust size of canvas
+        this.$refs.remote_video.onloadeddata = function() {
+          console.log("remote video loaded, adjusting drawing canvas")
+          // that.$refs.canvas_draw.offsetWidth = that.$refs.remote_video.offsetWidth
+          // that.$refs.canvas_draw.offsetHeight = that.$refs.remote_video.offsetHeight
+          var vidWidth = that.$refs.remote_video.offsetWidth
+          var vidHeight = that.$refs.remote_video.offsetHeight
+          var topMargin = that.$refs.remote_video_div.offsetTop + "px"
+          console.log(that.$refs.remote_video.offsetHeight)
+          that.$refs.canvas_draw.width = vidWidth
+          that.$refs.canvas_draw.height = vidHeight
+
+          // document.getElementById('canvas_draw_div').style.top
+          console.log(`vidWidth ${vidWidth} vidHeight ${vidHeight}`)
+          that.$refs.canvas_draw_div.style.top = topMargin
+
+          that.$refs.canvas_good.width = vidWidth
+          that.$refs.canvas_bad.width = vidWidth
+
+
+          that.$refs.canvas_good_draw_div.height = vidHeight
+          that.$refs.canvas_bad_draw_div.height = vidHeight
+          that.$refs.canvas_good_draw_div.style.top = topMargin
+          that.$refs.canvas_bad_draw_div.style.top = topMargin
+
+          that.$refs.canvas_cursor.width = vidWidth
+          that.$refs.canvas_cursor.height = vidHeight
+          that.$refs.canvas_cursor_div.style.top = topMargin
+
+          // that.$refs.canvas_draw.offsetWidth = that.$refs.remote_video.offsetWidth
+          // that.$refs.canvas_draw.offsetHeight = that.$refs.remote_video.offsetHeight
+
+        }
+
       },
       restartStream() {
         console.log("end event triggered, restarting stream")
@@ -869,7 +1405,7 @@
         // console.log(Youtube)
         // return
         this.hideModal({name: "configure-stream-modal"})
-        var url = 'http://localhost:3000/stream'
+        var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/stream`
         var payload = {
           url: this.$data.rtsp_url,
           port: this.$data.rtsp_port,
@@ -898,36 +1434,92 @@
             console.log(`res ${res}`)
             this.$data.streamingType = "youtube"
             this.$data.isStreaming = true
-            this.$refs.video.style.visibility = "hidden"
+            // this.$refs.video.style.visibility = "hidden"
             this.$refs.remote_video.style.visibility = "visible"
-
+            this.$refs.remote_video.pause()
+            this.$refs.remote_video.src = ""
             res.json().then( (res) => {
               console.log(res)
               console.log(`setting vid stream ${res.url}`)
               // this.$refs.remote_video.src = res.url
-              this.$refs.remote_video.src = "http://localhost:3000/ytstream"
+              //
+              this.$refs.remote_video.src = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/ytstream`
+              this.$refs.remote_video.load()
+              // adjusting drawing canvas
+              this.$refs.remote_video.loadeddata = function() {
+                console.log("remote video loaded, adjusting drawing canvas")
+                var vidWidth = that.$refs.remote_video.offsetWidth
+                var vidHeight = that.$refs.remote_video.offsetHeight
+                var topMargin = that.$refs.remote_video_div.offsetTop + "px"
+                console.log(that.$refs.remote_video.offsetHeight)
+                that.$refs.canvas_draw.width = vidWidth
+                that.$refs.canvas_draw.height = vidHeight
+                // document.getElementById('canvas_draw_div').style.top
+                console.log(`vidWidth ${vidWidth} vidHeight ${vidHeight}`)
+                that.$refs.canvas_draw_div.style.top = topMargin
+                that.$refs.canvas_good.width = vidWidth
+                that.$refs.canvas_bad.width = vidWidth
+                that.$refs.canvas_good_draw_div.height = vidHeight
+                that.$refs.canvas_bad_draw_div.height = vidHeight
+                that.$refs.canvas_good_draw_div.style.top = topMargin
+                that.$refs.canvas_bad_draw_div.style.top = topMargin
+
+              }
+
             })
           } else {
+            // TODO, confirm draw still works here
             console.log("stream started")
             this.$data.isStreaming = true
-            this.$refs.stream_canvas.style.height = "480px"
+            this.$refs.stream_canvas.style.height = "360px"
+            this.$refs.stream_canvas.style.offsetHeight = "360px"
             this.$refs.stream_canvas.style.visibility = 'visible'
             this.$refs.canvas.style.visibility = 'hidden'
             this.$refs.video.style.visibility = 'hidden'
             this.$refs.video.style.height = "0px"
             this.$data.streamingType = "rtsp"
-              // this.$data.player = new JSMpeg.Player('ws://localhost:9999', {
-            this.player = new JSMpeg.Player('ws://localhost:9999', {
+
+            var proxyIp = this.$data.proxyServerIp
+            var wsPort = 6004
+            if (proxyIp) {
+              var wsEndpoint = `ws://${proxyIp}:${wsPort}`.replace('http://', '').replace('https://', '')
+            } else {
+              var wsEndpoint = `ws://localhost:${wsPort}`
+            }
+            this.player = new JSMpeg.Player(wsEndpoint, {
               canvas: document.getElementById('stream_canvas'),
               disableGl: true
             })
+            var vidWidth = this.$refs.stream_canvas.offsetWidth
+            var vidHeight = this.$refs.stream_canvas.offsetHeight
+            var topMargin = this.$refs.stream_canvas.offsetTop + "px"
+            this.$refs.canvas_draw.width = vidWidth
+            this.$refs.canvas_draw.height = vidHeight
+            // document.getElementById('canvas_draw_div').style.top
+            console.log(`vidWidth ${vidWidth} vidHeight ${vidHeight}`)
+            this.$refs.canvas_draw_div.style.top = topMargin
+            this.$refs.canvas_good.width = vidWidth
+            this.$refs.canvas_bad.width = vidWidth
+            this.$refs.canvas_good_draw_div.height = vidHeight
+            this.$refs.canvas_bad_draw_div.height = vidHeight
+            this.$refs.canvas_good.height = vidHeight
+            this.$refs.canvas_bad.height = vidHeight
+
+            this.$refs.canvas_good_draw_div.style.top = topMargin
+            this.$refs.canvas_bad_draw_div.style.top = topMargin
+
           }
 
         }).catch( err => console.log(`starting stream error ${err} `))
       },
       stopStream(){
 
-        var url = 'http://localhost:3000/stream'
+
+        var canvas = this.$refs.canvas_draw
+        var ctx = canvas.getContext("2d")
+        ctx.clearRect(0,0,canvas.width, canvas.height)
+
+        var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/stream`
         var options = {
           method: "POST",
           body: JSON.stringify({
@@ -942,21 +1534,14 @@
         this.$data.loadingState = "loaded"
         this.$refs.stream_canvas.style.visibility = 'hidden'
         // this.$refs.stream_canvas.style.height = '0px'
-
         this.$refs.remote_video.style.visibility = 'hidden'
-
         // this.$refs.canvas.style.visibility = 'visible'
         this.$refs.video.style.visibility = 'visible'
         this.$refs.video.style.height = "480px"
 
-
         fetch(url, options).then((res) => {
           console.log("stopping stream")
           this.$data.isStreaming = false
-          // this.$data.player = new JSMpeg.Player('ws://localhost:9999', {
-          //   canvas: document.getElementById('stream_canvas'), // Canvas should be a canvas DOM element
-          //   disableGl: true
-          // })
           if (this.player) {
             console.log(this.player)
             this.player.stop()
@@ -964,7 +1549,6 @@
         }).catch( err => console.log(`getting models error ${err} `))
       },
       getCount() {
-        // inferences = [ {classified: [{"label": "foo"}] }, {classified: [{"label": "bar"}, {"label": "foo"}] }, {classified: [{"label": "dfs"}, {"label": "dfs"}] } ]
         var type = this.$data.inferences[0]['analysis_type']
         if (type == 'classification') {
           console.log("getting classification labels")
@@ -1012,21 +1596,14 @@
         this.$data.chartRedraw += 1
       },
       getStats() {
-
-        // Object.keys(inferencesByCategory['positive'])
-
-        // uniqLabels.map
-        // .filter(  )
       },
       loadModelConfig(modelName) {
-        // let model = this.$data.selectedModel
-        // if ( (model.name) && ( Object.keys(this.$data.modelConfigs).includes(model.name) ) ) {
-        // modelName = model.name
-        console.log("loading model config")
-        console.log(this.$data.modelConfigs)
-        if (this.$data.modelConfigs.includes(modelName)) {
+        console.log(`checking configs for ${modelName}`)
+        console.log(JSON.stringify(this.$data.modelConfigs))
+        if ( Object.keys(this.$data.modelConfigs).includes(modelName)) {
+          console.log("loading model config")
           this.$data.selected_good_labels = this.$data.modelConfigs[modelName]['good']
-          this.$data.selected_good_labels = this.$data.modelConfigs[modelName]['bad']
+          this.$data.selected_bad_labels = this.$data.modelConfigs[modelName]['bad']
         }
       },
       updateModelConfig() {
@@ -1105,12 +1682,12 @@
                     value: category.category_name
                   }
           })
+          console.log(multiSelectOpts)
           this.$data.good_labels = multiSelectOpts
           this.$data.bad_labels = multiSelectOpts
           console.log(`multiSelectOpts ${JSON.stringify(multiSelectOpts)}`)
           this.$data.selectedModel = filteredModels[0]
           this.loadModelConfig(modelName)
-          return
         }
       },
       checkInference(inference, labels) {
@@ -1208,50 +1785,71 @@
         this.recursiveTo()
         // funcs = [...Array(seconds).keys()].map( s => that.t_o(s) )
       },
+      getCanvasWidth() {
+        console.log("getting canvas width")
+        console.log(this.$refs.canvas.width)
+        return this.$refs.canvas.width
+      },
+      getCanvasHeight() { return this.$refs.canvas.height},
       capture() {
           if ( Object.keys(this.selectedModel).length == 0) {
             console.log("no model selected")
-            return
+            // return
           }
           var that = this
           var date = new Date(Date.now())
           console.log(`capturing at ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`)
-          console.log(this.$refs)
           if ((this.$data.isStreaming) && (this.$data.streamingType == 'rtsp')) {
             console.log("sampling rtsp feed")
-            // this.$refs.stream_canvas.style.visibility = 'visible'
-            // this.$refs.canvas.style.visibility = 'hidden'
             this.canvas = this.$refs.stream_canvas;
-            var canvas_url = this.canvas.toDataURL('png') //document.getElementById('stream_canvas').toDataURL('png')
-            // document.getElementById('testimg').src = canvas_url
-            // var context = this.canvas.getContext("2d").drawImage(this.video, 0, 0, 640, 480);
-            // var canvas_url = canvas.toDataURL("image/png")
-
-            // document.getElementById('stream_canvas').toDataURL('png')
-            // var context = this.canvas.getContext("webgl", {preserveDrawingBuffer: true}) //.drawImage(this.video, 0, 0, 640, 480);
-            // var context = this.canvas
-            // document.getElementById('stream_canvas').getContext('2d')
-            // var i = document.getElementById('stream_canvas').getContext("webgl", {preserveDrawingBuffer: true}).canvas.toDataURL("image/png")
-
+            var width = this.canvas.offsetWidth
+            var height = this.canvas.offsetHeight
+            var context = this.canvas.getContext("2d").drawImage(this.$refs.stream_canvas, 0, 0, width, height);
+            var canvas_url = this.canvas.toDataURL('image/png') //document.getElementById('stream_canvas').toDataURL('png')
           } else if ((this.$data.isStreaming) && ((this.$data.streamingType == 'youtube') || (this.$data.streamingType == 'file')  ) ) {
             console.log("sampling youtube video")
             this.canvas = this.$refs.canvas;
-            var context = this.canvas.getContext("2d").drawImage(this.$refs.remote_video, 0, 0, 640, 480);
-            // this.$refs.remote_video.style.border = "dotted"
-            var canvas_url = canvas.toDataURL("image/png")
+            var width = this.canvas.offsetWidth
+            var height = this.canvas.offsetHeight
+            var context = this.canvas.getContext("2d").drawImage(this.$refs.remote_video, 0, 0, width, height);
+            // var image = context.drawImage(this.$refs.remote_video, 0, 0, width, height);
+            var canvas_url = this.canvas.toDataURL("image/png")
 
           } else { // webcam
             console.log("sampling webcam video")
             this.$refs.stream_canvas.style.visibility = 'hidden'
             // this.$refs.canvas.style.visibility = 'visible'
             this.canvas = this.$refs.canvas;
-            var context = this.canvas.getContext("2d").drawImage(this.video, 0, 0, 640, 480);
-            var canvas_url = canvas.toDataURL("image/png")
+            var width = this.canvas.offsetWidth
+            var height = this.canvas.offsetHeight
+            var context = this.canvas.getContext("2d").drawImage(this.video, 0, 0, width, height);
+            // var image = context.drawImage(this.video, 0, 0, width, height);
+            var canvas_url = this.canvas.toDataURL("image/png")
           }
+          // console.log(image)
           this.captures.push(canvas_url);
+          /*
+          var i = new Image();
+          i.onload = function(){
+           console.log("base")
+           console.log( i.width+", "+i.height );
+           console.log( i.naturalWidth+", "+i.naturalHeight );
+          };
 
-          // console.log(`canvas url ${canvas_url}`)
-          this.canvas.toBlob(function(blob){ that.submitInference(blob, canvas_url)}, 'image/png'); // JPEG at 95% quality
+          i.src = canvas_url;
+          */
+
+
+          // TODO! Make canvas url match with width and height
+          // console.log(`captured canvas url dims`)
+          // console.log(`width ${width} height ${height}`)
+
+          // console.log(`width ${this.canvas.width} height ${this.canvas.height}`)
+
+          // var draw_canvas = this.$refs.canvas_draw;
+          // console.log(`draw_canvas.width ${draw_canvas.width} draw_canvas.height ${draw_canvas.height}`)
+
+          this.canvas.toBlob(function(blob){ that.submitInference(blob, canvas_url, width, height)}, 'image/png'); // JPEG at 95% quality
 
           // this.canvas.toBlob(
           //   blob => this.submitInference(blob, canvas_url)
@@ -1432,6 +2030,7 @@
         })
         return `${date} ${time}`
       },
+      /*
       getModels() {
         //TODO, check for model classes
         if ( ! this.$data.url) {
@@ -1444,7 +2043,13 @@
             "X-Auth-Token": this.$data.token,
           }
         }
-        var url = "http://localhost:3000/proxyget/api/trained-models"
+        if (this.$data.edge) {
+          var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget` + "/model-info"
+
+        } else {
+          var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget` + "/api/trained-models"
+        }
+        // var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget/api/trained-models`
         // proxy needed for cors
         fetch(url, options).then((res) => {
           console.log("models received")
@@ -1452,66 +2057,104 @@
           console.log(res)
           res.json().then((models) => {
             // if ( models != {} ) {
-              console.log(models)
+            if (this.$data.edge) {
+              this.$data.models = [models]
+              this.$data.allmodels = [models]
+            } else {
               this.$data.models = models.filter( (m) => m.deployed == '1'  )
               this.$data.allmodels = models
-            // }
+            }            // }
           }).catch( err => console.log(`parsing model json error ${err} `) )
         }).catch( err => console.log(`getting models error ${err} `) )
       },
+      */
+      drawRectStream(labelInRoi, width, cls, recWidth, recHeight,objectXMin, objectYMin) {
+         return new Promise( (resolve, reject) => {
+           console.log("draw rect promise")
 
-      submitInference(image, canvas_url) {
+           if (this.$data.selected_bad_labels.includes( cls['label'])) {
+             var canvas = this.$refs.canvas_bad
+             var ctx = canvas.getContext("2d")
+             ctx.beginPath();
+             console.log("bad")
+             var strokeStyle = "red";
+           } else if (this.$data.selected_good_labels.includes( cls['label'])) {
+             var canvas = this.$refs.canvas_good
+             var ctx = canvas.getContext("2d")
+             ctx.beginPath();
+             console.log("good")
+             var strokeStyle = "green";
+           } else {
+             console.log("neutral")
+             var strokeStyle = "yellow";
+             return
+           }
+           console.log(`label type ${strokeStyle}`)
+           if (labelInRoi) {
+             console.log("in roi")
+             var lineWidth = 2;
+             // ctx.shadowColor = '#99ff66';
+             // ctx.shadowBlur = 20;
+           } else {
+             console.log("NOT in roi")
+             var lineWidth = 1;
+           }
+
+           if (lineWidth && strokeStyle) {
+             ctx.lineWidth = lineWidth
+             ctx.strokeStyle = strokeStyle
+             console.log(`drawing rectangle around object ${ctx.strokeStyle} ${ctx.lineWidth} ${cls['label']}`)
+
+             ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
+             ctx.stroke();
+             ctx.font = "16px Arial";
+             ctx.fillStyle = strokeStyle;
+             ctx.fillText(cls['label'], objectXMin, objectYMin)
+
+             resolve()
+           }
+        })
+      },
+      submitInference(image, canvas_url, width=null, height=null) {
+        console.log(`width ${width} height ${height}`)
         // post to powerai when user clicks "upload"
 
-        // var e = document.getElementById("selectedModel");
-        // var selectedModel = e.options[e.selectedIndex].value
-        // this.$data.selectedModel = selectedModel
-
-        // let model = this.$data.models.filter( m => m.name == this.$data.selectedModel['name'] )[0]
         let model = this.$data.selectedModel
         console.log(`image type ${typeof image}`)
         console.log(`submitting inference to model ${model['name']}`)
-        // this.$data.files.map((file, f_idx) => {
-        // if ((modelInfo) && (modelInfo.usage == "cic") && (file.name.includes('mp4'))) {
-
-          if (false) {
-            // TODO, re-add if we split video to frames
-            console.log("posting video to classifier")
-            console.log("convert video to frames")
-            var headers = {
-              "X-Fragment-Video": "1",
-              // "X-File-Name": file.name,
-              "X-Proxy-URL": this.$data.url
-            }
-          } else {
-            // return
-            var headers = {
-              "X-Proxy-URL": this.$data.url
-            }
+          var headers = {
+            "X-Proxy-URL": this.$data.mviUrl  //this.$data.url
           }
+
           var blobAppended = true
           var formData = new FormData()
-          // var img = new Blob(canvas_url)
           formData.append('blob', image, 'image.png')
-          // formData.append('blob', canvas_url, 'image.png')
-          // formData.append('blob', img, 'image.png')
-
-          // var appendDone = false
           if (blobAppended) {
             var options = {
               method: "POST",
               body: formData,
               headers: headers
             }
-            console.log("uploading file opts")
-            console.log(`${JSON.stringify(options)}`)
-            console.log("posting to: " + "http://localhost:3000/proxypost" + "/api/dlapis/" + model['_id'])
-            fetch("http://localhost:3000/proxypost" + "/api/dlapis/" + model['_id'], options).then((res) => {
+            if (this.$data.edge) {
+              console.log("posting to edge endpoint")
+              var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxypost/inference`
+            } else {
+              console.log("posting to MVI endpoint")
+              var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxypost` + "/api/dlapis/" + model['_id']
+            }
+            console.log(`url ${url}`)
+            fetch(url, options).then((res) => {
               console.log("inference uploaded")
               // TODO, show a "loading" gif until inference is fully uploaded?
               res.json().then((result) => {
-                console.log("json")
-                console.log(result)
+                var canvas = this.$refs.canvas_good
+                var ctx = canvas.getContext("2d")
+                ctx.clearRect(0,0,canvas.width, canvas.height)
+
+                var canvas = this.$refs.canvas_bad
+                var ctx = canvas.getContext("2d")
+                ctx.clearRect(0,0,canvas.width, canvas.height)
+
                 // cases
                 // append image inference (object or classification)
                 // handle array of images (classification)
@@ -1530,30 +2173,45 @@
                     model_id: this.$data.selectedModel['_id'],
                     heatmap: result.map( r => r.heatmap ), //heatmap,
                     classified: result.map( r => r.classified ), //result['classified'],
-                    url: this.$data.url
+                    url: this.$data.url,
+                    width: width,
+                    height: height
                   }
                   console.log("appending video classification inference ")
                   console.log(inference)
                   // this.$data.inferences.push(inference)
+
                   this.$data.inferences.unshift(inference)
 
                 } else if (Object.keys(result).includes('classified')) {
                   // process single image
                   this.$data.inferenceDetails[result.imageMd5] = {}
-                  var endpoint = result.imageUrl.split('/uploads')[1]
+
+                  if (Object.keys(result).includes("imageUrl")) {
+                    var endpoint = result.imageUrl.split('/uploads')[1]
+                    var filename = endpoint.split('/').slice(-1)[0]
+                  } else {
+                    var endpoint = null
+                    var filename = null
+                  }
                   // var labels = Array.from(new Set(result.classified.map((c) => c.label)))
 
                   // if classified is "array", we're receiving results of "object detection"
                   // if (Array.isArray(result.classified)) {
                   // ['usage'] == 'cic' // classification
                   // ['usage'] == 'cod' // object detection
+                  var canvas = this.$refs.canvas_draw
+                  var ctx = canvas.getContext("2d")
                   if (Array.isArray(result.classified) && (result.classified.length < 1) ) {
                     console.log("skipping inference, no results detected")
+                    console.log("clearing boxes")
+                    // ctx.clearRect(0,0,canvas.width, canvas.height)
                     return
                   }
-
-                  if (this.$data.selectedModel.usage == 'cod') {
+                  console.log(this.$data.selectedModel.usage)
+                  if (this.$data.selectedModel.usage == 'cod') { // TODO, see if there are other object detection models
                     // object detection
+
                     var analysis_type = 'object_detection'
                   } else {
                     // classification
@@ -1577,7 +2235,7 @@
                   }
 
                   // TODO, curretly have to store this locally since pictures are not returned with other inferences. Should investigate where these images/metadata are stored, and possibly cache results
-                  var filename = endpoint.split('/').slice(-1)[0]
+
 
                   // if (analysis_type == 'classification') {
                   // result.classified.filter( inf => inf.name == '_negative_' )
@@ -1585,11 +2243,12 @@
                   if (JSON.stringify(result['classified']).includes('_negative_')) {
                     return
                   }
+                  var date = (new Date().toJSON())
                   var inference = {
                     _id: result.imageMd5,
                     analysis_type: analysis_type, //"image",
                     canvas_url: canvas_url,
-                    created_date: (new Date().toJSON()),
+                    created_date: date,
                     thumbnail_path: '/uploads' + endpoint,
                     status: result['result'],
                     filename: "capture_" + (new Date().toJSON()), //filename,
@@ -1597,14 +2256,233 @@
                     heatmap: heatmap,
                     percent_complete: 100,
                     classified: result['classified'],
-                    url: this.$data.url
+                    url: this.$data.url,
+                    width: width,
+                    height: height
                   }
                   console.log("appending inference ")
                   console.log(inference)
-                  // this.$data.inferences.push(inference)
-                  this.$data.inferences.unshift(inference)
+                  this.$data.inferences.push(inference)
+
+
+                  var recBoundingBoxes = this.$data.recBoundingBoxes
+                  // /*
+                  // detect if object in ROI
+                  let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+                  let maxX = Math.max(this.$data.recEnd['x'], this.$data.recStart['x'])
+                  let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+                  let maxY = Math.max(this.$data.recEnd['y'], this.$data.recStart['y'])
+                  let recWidth = maxX - minX
+                  let recHeight = maxY - minY
+
+                  if ( (inference["classified"].length > 0) && this.$data.recBoundingBoxes)  {
+                    // ctx.clearRect(0,0,width, height)
+                    // this.$data.lastDraw = new Date.now()
+                    // var canvas = this.$refs.canvas_draw
+
+                    // width is hardcoded as 300
+                    // height is 150
+                    console.log(`width ${width} height ${height}`)
+                    console.log(`canvas.offsetWidth ${canvas.offsetWidth} canvas.offsetHeight ${canvas.offsetHeight}`)
+                    var wRatio = canvas.offsetWidth / width
+                    var vRatio = canvas.offsetHeight / height
+                    ctx.clearRect(0,0,canvas.offsetWidth, canvas.offsetHeight)
+
+                    // draw bounding rectangle
+                    ctx.strokeStyle = "green";
+
+                    ctx.beginPath();
+                    ctx.rect(minX, minY, recWidth, recHeight)
+                    ctx.stroke();
+
+                    // draw ROI
+                    // console.log("redrawing roi")
+                    // ctx.beginPath();
+                    // ctx.lineWidth = 3
+                    // ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
+                    // ctx.stroke();
+
+                    // lets gen a ratio based on the real width/height (offset)
+                    var results = []
+                    var goodInferences = []
+                    var badInferences = []
+                    inference["classified"].map( (cls, idx) => {
+                      var objectYMax = cls['ymax'] * vRatio
+                      var objectYMin = cls['ymin'] * vRatio
+                      var objectXMax = cls['xmax'] * wRatio
+                      var objectXMin = cls['xmin'] * wRatio
+
+                      var recBoxYMin = this.$data.recBoundingBoxes['ymin'] //* vRatio
+                      var recBoxYMax = this.$data.recBoundingBoxes['ymax'] //* vRatio
+                      var recBoxXMin = this.$data.recBoundingBoxes['xmin'] //* wRatio
+                      var recBoxXMax = this.$data.recBoundingBoxes['xmax'] //* wRatio
+                      console.log(`checking ROI ${cls['label']}`)
+                      console.log("object coords")
+                      console.log(`ymax: ${objectYMax} ymin ${objectYMin} xmax ${objectXMax} xmin ${objectXMin} `)
+                      console.log("recBoundingBoxes")
+                      console.log(this.$data.recBoundingBoxes)
+                      // console.log(`ymax: ${recBoundingBoxes['ymax']} ymin ${recBoundingBoxes['ymin']} xmax ${recBoundingBoxes['xmax']} xmin ${recBoundingBoxes['xmin']} `)
+                      console.log("this.$data.roiWidth")
+                      console.log(this.$data.roiWidth)
+                      console.log("this.$data.roiHeight")
+                      console.log(this.$data.roiHeight)
+                      console.log('-----')
+                      console.log("recBoxYMin <= objectYMax <= recBoxYMax")
+                      console.log(`${recBoxYMin} <= ${objectYMax} <= ${recBoxYMax}`)
+                      console.log(`${recBoxYMin <= objectYMax <= recBoxYMax}`)
+                      console.log("recBoxYMin <= objectYMin <= recBoxYMax")
+                      console.log(`${recBoxYMin} <= ${objectYMin} <= ${recBoxYMax}`)
+                      console.log(`${recBoxYMin <= objectYMin <= recBoxYMax}`)
+                      console.log("recBoxXMin <= objectXMax <= recBoxYMax")
+                      console.log(`${recBoxXMin} <= ${objectXMax} <= ${objectXMax}`)
+                      console.log(`${recBoxXMin <= objectXMax <= objectXMax}`)
+                      console.log("recBoxXMin <= objectXMin <= recBoxXMax")
+                      console.log(`${recBoxXMin} <= ${objectXMin} <= ${recBoxXMax}`)
+                      console.log(`${recBoxXMin <= objectXMin <= recBoxXMax}`)
+                      console.log('-----')
+                      var labelInRoi = (( recBoxYMin <= objectYMax && objectYMax <= recBoxYMax ) ||
+                                       ( recBoxYMin <= objectYMin && objectYMin <= recBoxYMax )) &&
+                                       (( recBoxXMin <= objectXMax && objectXMax <= recBoxXMax ) ||
+                                       ( recBoxXMin <= objectXMin && objectXMin <= recBoxXMax ))
+
+                      let recWidth = Math.abs(objectXMin - objectXMax)
+                      let recHeight = Math.abs(objectYMin - objectYMax)
+                      console.log("recWidth recHeight")
+                      console.log(`${recWidth}, ${recHeight}`)
+                      console.log("objectXMin objectYMin")
+                      console.log(`${objectXMin} ${objectYMin}`)
+
+                      if ( true) {
+                            // (( this.$data.recBoundingBoxes['ymax'] <= objectYMax <= this.$data.recBoundingBoxes['ymin'] ) ||
+                            //  ( this.$data.recBoundingBoxes['ymin'] <= objectYMin <= this.$data.recBoundingBoxes['ymax'] )) &&
+                            // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+                            // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+
+                            // draw label
+
+                            // if (this.$data.selected_bad_labels.includes( cls['label'])) {  //(labelInRoi) {
+                            //   console.log("appending bad promise")
+                            //   badInferences.push( this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight))
+                            // } else {
+                            //   console.log("appending good promise")
+                            //   goodInferences.push( this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight))
+                            // }
+
+                          // TODO, let user click on pie chart to filter down
+                          // TODO, only focus on ROI
+
+                          //
+
+                           let recWidth = Math.abs(objectXMin - objectXMax)
+                           let recHeight = Math.abs(objectYMin - objectYMax)
+                           this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight, objectXMin, objectYMin)
+                           if (this.$data.selected_bad_labels.includes( cls['label']) && labelInRoi ) {
+                              var alert = {
+                                "type": "Bad Label in ROI",
+                                "classes": cls['label'],
+                                "priority": "High",
+                                "date": date
+                              }
+                              console.log(`adding alert ${alert['type']}`)
+                              this.$data.alerts.push(alert)
+                            } else if (this.$data.selected_bad_labels.includes( cls['label']) && (!labelInRoi)) {
+                              var alert = {
+                                "type": "Bad Label outside of ROI",
+                                "classes": cls['label'],
+                                "priority": "High",
+                                "date": date
+                              }
+                              console.log(`adding alert ${alert['type']}`)
+                              this.$data.alerts.push(alert)
+                            } else if (this.$data.selected_good_labels.includes( cls['label']) && (labelInRoi)) {
+                              var alert = {
+                                "type": "Good Label in ROI",
+                                "classes": cls['label'],
+                                "priority": "Low",
+                                "date": date
+                              }
+                              console.log(`adding alert ${alert['type']}`)
+                              this.$data.alerts.push(alert)
+                            } else {
+                              console.log("no alerts")
+                            }
+                            console.log(this.$data.alerts)
+                            // results.push( {
+                            //   "labelInRoi": labelInRoi,
+                            //   "width": width,
+                            //   "cls": cls,
+                            //   "recWidth": recWidth,
+                            //   "recHeight": recHeight
+                            // })
+
+                            // debugging
+                            // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
+                            // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                            // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
+                            // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMax, objectYMax)
+                            console.log("done drawing")
+
+                         }
+
+                         else if (this.$data.selected_good_labels.includes( cls['label'])) {
+                           console.log("good object found in ROI, drawing")
+                           // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+                           // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+                           let recWidth = Math.abs(objectXMin - objectXMax)
+                           let recHeight = Math.abs(objectYMin - objectYMax)
+                           console.log("recWidth recHeight")
+                           console.log(`${recWidth}, ${recHeight}`)
+                           console.log("objectXMin objectYMin")
+                           console.log(`${objectXMin} ${objectYMin}`)
+                           ctx.strokeStyle = "green";
+                           ctx.beginPath();
+                           ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
+                           ctx.stroke();
+                           ctx.font = "16px Arial";
+                           ctx.fillStyle = "#DC4929";
+                           ctx.fillText(cls['label'], objectXMin, objectYMin)
+                           // draw location
+                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
+                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                           // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
+                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                           console.log("done drawing")
+                         }
+                        else {
+                          console.log("object NOT found in ROI, drawing")
+                          // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+                          // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+                          let recWidth = Math.abs(objectXMin - objectXMax)
+                          let recHeight = Math.abs(objectYMin - objectYMax)
+                          console.log("recWidth recHeight")
+                          console.log(`${recWidth}, ${recHeight}`)
+                          console.log("objectXMin objectYMin")
+                          console.log(`${objectXMin} ${objectYMin}`)
+                          ctx.strokeStyle = "yellow";
+                          ctx.beginPath();
+                          ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
+                          ctx.stroke();
+                          ctx.font = "16px Arial";
+                          ctx.fillStyle = "#DC4929";
+                          ctx.fillText(cls['label'], objectXMin, objectYMin)
+                          // draw location
+                          // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
+                          // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                          // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
+                          // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                          console.log("done drawing")
+                        }
+                      })
+                  }
+                  // */
+
+                  // "classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}]
+
+
+                  // this.$data.inferences.unshift(inference)
+                  // localStorage.setItem('inference', JSON.stringify(inference))
                   this.getCount()
-                  this.genChartData()
+                  // this.genChartData()
                   // object detection
                   // {"webAPIId":"61539587-2c52-47d6-bfb7-a60d6d49bace","imageUrl":"http://vision-v120-prod-service:9080/vision-v120-prod-api/uploads/temp/61539587-2c52-47d6-bfb7-a60d6d49bace/ebd425bc-c675-4161-95e1-ca81bf685957.png","imageMd5":"8cb49157f32d2790dfc46b96abadbce7","classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}],"result":"success"}
                   // "classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}]
@@ -1629,36 +2507,42 @@
       },
 
       login() {
-        console.log(`requesting token from ${this.$data.url}/api/tokens`)
-        var options = {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          insecure: true,
-          body: JSON.stringify({
-            "username": this.$data.username,
-            "password": this.$data.password,
-            "grant_type": "password"
+        localStorage.setItem('mviUrl', this.$data.mviUrl)
+        if (this.$data.edge) {
+          this.$data.token = null
+          this.hideModal({'name': 'login-modal'})
+          return
+        } else {
+          console.log(`requesting token from ${this.$data.mviUrl}/api/tokens`)
+          var options = {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            insecure: true,
+            body: JSON.stringify({
+              "username": this.$data.username,
+              "password": this.$data.password,
+              "grant_type": "password"
+            })
+          }
+          console.log(`login options ${JSON.stringify(options)}`)
+          fetch(this.$data.url + "/api/tokens", options).then((res) => {
+            console.log("token api request made")
+            this.$modal.hide("login-modal")
+            res.json().then((token) => {
+              console.log(token)
+              console.log(`received new token ${JSON.stringify(token['token'])}`)
+              this.$data.token = token['token']
+              localStorage.setItem('token', token['token'])
+              this.getModels()
+              // pull data
+            }).catch((err) => {
+              console.log("err in token api promise")
+              console.log(err)
+            })
           })
         }
-        console.log(`login options ${JSON.stringify(options)}`)
-        localStorage.setItem('url', this.$data.url)
-        fetch(this.$data.url + "/api/tokens", options).then((res) => {
-          console.log("token api request made")
-          this.$modal.hide("login-modal")
-          res.json().then((token) => {
-            console.log(token)
-            console.log(`received new token ${JSON.stringify(token['token'])}`)
-            this.$data.token = token['token']
-            localStorage.setItem('token', token['token'])
-            this.getModels()
-            // pull data
-          }).catch((err) => {
-            console.log("err in token api promise")
-            console.log(err)
-          })
-        })
       },
       inputFile: function(newFile, oldFile) {
         if (newFile && oldFile && !newFile.active && oldFile.active) {
@@ -1772,51 +2656,43 @@
 
       },
       getModels() {
-        console.log("getting models")
+        if (this.$data.edge) {
+          var proxyUrl = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget` + "/model-info"
+        } else {
+          var proxyUrl = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget` + "/api/trained-models"
+        }
+        var mviUrl = this.$data.mviUrl
         var options = {
           method: "GET",
           headers: {
-            "X-Auth-Token": this.$data.token,
-            "X-Proxy-URL": this.$data.url
+            "X-Auth-Token": this.$data.token || "",
+            "X-Proxy-URL": mviUrl //url //this.$data.url
           }
         }
-        var url = 'http://localhost:3000/proxyget' + "/api/trained-models"
-        console.log(`${url}`)
-        console.log( options['headers'] )
-        // fetch(this.$data.url + "/trained-models", options).then((res) => {
+        console.log(`getting models from ${mviUrl}`)
+        console.log(`options ${JSON.stringify(options)}`)
         // proxy needed for cors
-        fetch(url, options).then((res) => {
-          console.log("models received ${res}")
-          console.log(res)
+        fetch(proxyUrl, options).then((res) => {
           res.json().then((models) => {
-            console.log(models)
-            this.$data.models = models.filter( (m) => m.deployed == '1'  )
-            this.$data.allmodels = models
+            console.log(`models received ${JSON.stringify(models)}`)
+            if (this.$data.edge) {
+              this.$data.models = [models]
+              this.$data.allmodels = [models]
+              this.refreshLabels()
+            } else {
+              this.$data.models = models.filter( (m) => m.deployed == '1'  )
+              this.$data.allmodels = models
+              this.refreshLabels()
+            }
           })
         })
       },
-      getDatasets() {
-        var options = {
-          method: "GET",
-          headers: {
-            "X-Auth-Token": this.$data.token,
-            "X-Proxy-URL": this.$data.url
-          }
+      refreshLabels() {
+        if (this.$data.selectedModelName) {
+          this.setModel(this.$data.selectedModelName)
         }
-        console.log("getting datasets")
-        // proxy needed for cors
-        fetch('http://localhost:3000/proxyget' + "/api/datasets", options).then((res) => {
-          console.log("datasets received")
-          // console.log(res)
-          res.json().then((datasets) => {
-            console.log("parsed dataset json")
-            this.$data.datasets = datasets
-          })
-        }).catch( (err) =>  {
-          console.log("error getting datasets")
-          console.log(err)
-        })
       },
+
       showInvokeModal(config) {
         console.log("opening modal")
         // console.log(fields)
@@ -1960,10 +2836,6 @@
 <!-- <style lang="scss">
 @import "./styles/carbon";
 </style> -->
-
-<!-- <script type="text/javascript" src="localhost:3000/scripts/jsmpeg.min.js"></script> -->
-
-
 
 <!-- <style lang="scss" scoped>
   .md-card {
