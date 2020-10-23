@@ -18,7 +18,7 @@
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="getModels()">Get Models</CvButton>
+        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="getModels()">Get Models</CvButton> -->
       </div>
     </div>
 
@@ -108,17 +108,17 @@ ymin: 182 -->
 
         </div>
 
-        <div>
+        <div style="margin-bottom:10px">
           <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="capture">Capture Frame And Analyze</cv-button>
         </div>
-        <div >
+        <div style="margin-bottom:10px">
           <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
           <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
           <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
         </div>
 
-        <div>
-          <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="drawROI()">Draw ROI</cv-button>
+        <div style="margin-bottom:10px">
+          <cv-button style="width:50%" type="default" v-on:click="drawROI()">Draw ROI</cv-button>
         </div>
             <!-- <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 5; " crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
             <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 0;position: absolute; left: 50%; transform: translate(-50%, 0); " crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
@@ -221,18 +221,20 @@ ymin: 182 -->
     <!-- <div class="bx--col-md-12">
       <ccv-donut-chart :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart>
     </div> -->
-    <div class="bx--col-md-4">
-      <cv-data-table title="Alerts" :zebra=true :columns="['Type', 'Date', 'Classes', 'Priority']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
-        <template v-if="use_htmlData" slot="data">
-          <cv-data-table-row v-for="(row, rowIndex) in alerts" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
-            <cv-data-table-cell><input type="text" :value="row['type']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
-            <cv-data-table-cell><input type="text" :value="row['date']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
-            <cv-data-table-cell><input type="text" :value="row['classes']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
-            <cv-data-table-cell><input type="text" :value="row['priority']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
-          </cv-data-table-row>
-        </template>
-      </cv-data-table>
-    </div>
+    <template v-if="inferences.length > 0">
+      <div class="bx--col-md-4" style=height:600px;overflow-y:auto;>
+        <cv-data-table title="Alerts" :zebra=true :columns="['Type', 'Date', 'Classes', 'Priority']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
+          <template v-if="use_htmlData" slot="data">
+            <cv-data-table-row v-for="(row, rowIndex) in alerts" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
+              <cv-data-table-cell><input type="text" :value="row['type']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+              <cv-data-table-cell><input type="text" :value="row['date']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+              <cv-data-table-cell><input type="text" :value="row['classes']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+              <cv-data-table-cell><input type="text" :value="row['priority']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
+            </cv-data-table-row>
+          </template>
+        </cv-data-table>
+      </div>
+    </template>
 
     <div class="bx--col-md-8">
       <template v-if="inferences.length > 0">
@@ -292,7 +294,7 @@ ymin: 182 -->
       </modal>
 
       <modal name="add-rule" height="auto" style="z-index: 3000;">
-        {{alerts}}
+        {{alertConfigs}}
         <h2 text-align="center">Configure Alerts</h2>
         <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="addAlert">
           <cv-text-input
@@ -348,9 +350,9 @@ ymin: 182 -->
           <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;"
             v-model="alertPriority" ref="alertPrioritySelector" theme="" title="Bind Action" :hide-label=true :inline=false >
             <cv-select-option label="Set Priority" value="" :disabled=true>Priority</cv-select-option>
-            <cv-select-option label="High" value="high">High</cv-select-option>
-            <cv-select-option label="Medium" value="medium">Medium</cv-select-option>
-            <cv-select-option label="Low" value="low">Low</cv-select-option>
+            <cv-select-option label="High" value="High">High</cv-select-option>
+            <cv-select-option label="Medium" value="Medium">Medium</cv-select-option>
+            <cv-select-option label="Low" value="Low">Low</cv-select-option>
           </cv-select>
 
           <cv-button style="margin-top:30px;margin-bottom:20px;margin-right:20px;float:right" v-on:click="hideModal({'name': 'add-rule'})">Confirm</cv-button>
@@ -364,28 +366,38 @@ ymin: 182 -->
         <!-- <div> -->
           <cv-text-input
             v-model="actionTitle"
+            placeholder="Sample Action"
             label="Title">
           </cv-text-input>
+
+          <cv-text-input
+            v-model="actionUrl"
+            placeholder="https://api_url/endpoint"
+            label="REST Endpoint">
+          </cv-text-input>
+
+          <cv-text-input
+            placeholder="Username"
+            v-model="actionUserName"
+            label="Username">
+          </cv-text-input>
+
+          <cv-text-input
+            placeholder="Password"
+            v-model="actionPassword"
+            label="Password">
+          </cv-text-input>
+
+
         <!-- </div> -->
-          <!-- Let do API calls to keep it simple -->
-        <!-- <div> -->
-          <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme=""
-            label="Method" :inline=false >
-            <cv-select-option label="POST" value="POST">POST</cv-select-option>
+        <div>
+          <p>Rest Method</p>
+          <cv-select  style="height:60px;margin-left:-50px; margin-top: -30px;" v-model="restMethod" ref="restSelector" theme="" :inline=false >
+            <cv-select-option selected label="POST" value="POST">POST</cv-select-option>
             <cv-select-option label="GET" value="GET">GET</cv-select-option>
             <cv-select-option label="PUT" value="PUT">PUT</cv-select-option>
           </cv-select>
-        <!-- </div> -->
-
-        <!-- <div> -->
-          <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" label="Bind Action"
-            v-model="alertPriority" ref="alertPrioritySelector" theme="" title="Bind Action" :hide-label=true :inline=false >
-            <cv-select-option label="Select Priority" value="" :disabled=true>Priority</cv-select-option>
-            <cv-select-option label="High" value="high">High</cv-select-option>
-            <cv-select-option label="Medium" value="medium">Medium</cv-select-option>
-            <cv-select-option label="Low" value="low">Low</cv-select-option>
-          </cv-select>
-        <!-- </div> -->
+        </div>
 
           <!-- <cv-number-input
             style="margin-left:25%;margin-top:25px"
@@ -711,14 +723,18 @@ ymin: 182 -->
           console.log(`canvasElement.height ${canvasElement.height}` )
       }
     },
-
     data() {
       return {
+        restMethod: "",
+        actionPassword: "",
+        actionUserName: "",
+        actionUrl: "",
+        actionTitle: "",
         previewRect: false,
         previewCursor: false,
         alertPriority: "",
         actionTitle: "",
-        alerts: [],
+        alertConfigs: [],
         // TODO, set Backend Proxy URL and PAIV URL seperate
         mviUrl: (localStorage['paiv_url'] || process.env.VUE_MVI_URL),
         proxyServerIp: process.env.VUE_APP_PROXY_IP || `${window.location.protocol}//${window.location.hostname}`,
@@ -1019,7 +1035,7 @@ ymin: 182 -->
       var topMargin = canvas.offsetTop + "px"
       this.adjustDrawCanvas(canvas.offsetWidth, canvas.offsetHeight, topMargin)
 
-      let debug = true
+      let debug = false
       if (debug) {
         this.$refs.canvas_bad_draw_div.style.border = 'dotted'
         this.$refs.canvas_bad_draw_div.style.borderColor = 'red'
@@ -1042,14 +1058,49 @@ ymin: 182 -->
     methods: {
       addAlert() {
         let alert = {
-          alertTitle: this.$data.alertTitle,
-          alertExistingLabels: this.$data.alertExistingLabels,
-          alertMissingLabels: this.$data.alertMissingLabels,
-          alertPriority: this.$data.alertPriority
+          title: this.$data.alertTitle,
+          existingLabels: this.$data.alertExistingLabels,
+          missingLabels: this.$data.alertMissingLabels,
+          priority: this.$data.alertPriority
         }
         console.log("adding alert")
         console.log(alert)
-        this.$data.alerts.push(alert)
+        this.$data.alertConfigs.push(alert)
+      },
+      checkAlert(classes, date) {
+        // TODO, what if we have multiple workers? Some may have cases some may not
+        console.log(`classes ${classes} found in inference`)
+        // var classes = ['worker','vest','gloves']
+        // var classes = ['worker','vest','gloves', "helmet"]
+        // var existingLabels = ['worker']
+        // var missingLabels = ['helmet','vest','gloves']
+        // let union = [...new Set([...classes, ...missingLabels])]
+
+        var contains = (x) => classes.includes(x)
+        var that = this
+        this.$data.alertConfigs.map( (alertConfig) => {
+          let exists = alertConfig.existingLabels.some(contains)
+          let containsMissing = alertConfig.missingLabels.every(contains)
+          console.log(`exists ${exists}\ncontainsMissing ${containsMissing}`)
+          if (exists && (!containsMissing)) {
+            console.log("alert")
+            let alert = {
+              "type": alertConfig.title,
+              "classes": classes,
+              "priority": alertConfig.priority,
+              "date": date
+            }
+            that.$data.alerts.push(alert)
+          } else {
+            console.log("no alert")
+            console.log(`classes ${JSON.stringify(classes)}\n alertConfig.existingLabels ${JSON.stringify(alertConfig.existingLabels)}\n alertConfig.missingLabels ${JSON.stringify(alertConfig.missingLabels)}`)
+          }
+        })
+
+        // let difference = new Set([...classes].filter(x => !missingLabels.has(x)))
+
+        // if any of the missingLabels are not in classes
+        //let missing = missingLabels.filter(label => classes.includes(label) == true)
       },
       adjustRec(ev) {
         console.log("adjusting rectangle")
@@ -1614,36 +1665,40 @@ ymin: 182 -->
         // var good_labels_populated = false
         // var bad_labels_populated = false
         // selected_good_labels.map( (label) =>  {return { label: `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)` }})
-        this.$data.selected_good_labels.map( (label, idx) => {
-          // colors[label] = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
-          let color = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
-          this.$data.chartOptions.color.scale[label] = color
-          console.log(`updating good label ${idx} ${label}`)
-          this.$data.legend[label] = color
-          if (idx == (this.$data.selected_good_labels.length - 1) ) {
-            // this.$refs.donut_chart.forceUpdate()
-            console.log("good labels colors added")
-            console.log(this.$data.chartOptions.color.scale)
-            // this.$data.chartRedraw += 1
-            // good_labels_populated = true
-          }
-          console.log(this.$refs.donut_chart)
-        })
-        this.$data.selected_bad_labels.map( (label, idx) => {
-          // colors[label] = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, 0, 0)`
-          console.log(`updating bad label ${idx} ${label}`)
-          let color = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, 0, 0)`
-          this.$data.chartOptions.color.scale[label] = color
-          this.$data.legend[label] = color
-          if (idx == (this.$data.selected_bad_labels.length - 1) ) {
-            // this.$data.chartRedraw += 1
-            // this.$refs.donut_chart.forceUpdate()
-            console.log("bad labels colors added")
-            console.log(this.$data.chartOptions.color.scale)
-            // bad_labels_populated = true
-          }
-          console.log(this.$refs.donut_chart)
-        })
+        if (this.$data.selected_good_labels) {
+          this.$data.selected_good_labels.map( (label, idx) => {
+            // colors[label] = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
+            let color = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
+            this.$data.chartOptions.color.scale[label] = color
+            console.log(`updating good label ${idx} ${label}`)
+            this.$data.legend[label] = color
+            if (idx == (this.$data.selected_good_labels.length - 1) ) {
+              // this.$refs.donut_chart.forceUpdate()
+              console.log("good labels colors added")
+              console.log(this.$data.chartOptions.color.scale)
+              // this.$data.chartRedraw += 1
+              // good_labels_populated = true
+            }
+            console.log(this.$refs.donut_chart)
+          })
+        }
+        if (this.$data.selected_bad_labels) {
+          this.$data.selected_bad_labels.map( (label, idx) => {
+            // colors[label] = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, 0, 0)`
+            console.log(`updating bad label ${idx} ${label}`)
+            let color = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, 0, 0)`
+            this.$data.chartOptions.color.scale[label] = color
+            this.$data.legend[label] = color
+            if (idx == (this.$data.selected_bad_labels.length - 1) ) {
+              // this.$data.chartRedraw += 1
+              // this.$refs.donut_chart.forceUpdate()
+              console.log("bad labels colors added")
+              console.log(this.$data.chartOptions.color.scale)
+              // bad_labels_populated = true
+            }
+            console.log(this.$refs.donut_chart)
+          })
+        }
         // if (bad_labels_populated && good_labels_populated) {
           // console.log("updating chart colors")
           // console.log(colors)
@@ -1700,8 +1755,12 @@ ymin: 182 -->
       sortClasses(type, inferences) {
 
       },
-      checkClasses(inference, inputLabels, type=null) {
+      checkClasses(inference, inputLabels=[], type=null) {
         // inference.classified.filter(value => selected_good_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0
+
+        // if (inputLabels.length = 0) {
+        //   return []
+        // }
         var labels = inputLabels.map(l => l.toLowerCase())
         // if typeof(inference.classified) == 'object'
         // var inference = inf.classified
@@ -1804,7 +1863,7 @@ ymin: 182 -->
             this.canvas = this.$refs.stream_canvas;
             var width = this.canvas.offsetWidth
             var height = this.canvas.offsetHeight
-            var context = this.canvas.getContext("2d").drawImage(this.$refs.stream_canvas, 0, 0, width, height);
+            var context = this.canvas.getContext("2d").drawImage(this.$refs.stream_canvas, 0, 0) //, width, height);
             var canvas_url = this.canvas.toDataURL('image/png') //document.getElementById('stream_canvas').toDataURL('png')
           } else if ((this.$data.isStreaming) && ((this.$data.streamingType == 'youtube') || (this.$data.streamingType == 'file')  ) ) {
             console.log("sampling youtube video")
@@ -2069,16 +2128,16 @@ ymin: 182 -->
       },
       */
       drawRectStream(labelInRoi, width, cls, recWidth, recHeight,objectXMin, objectYMin) {
-         return new Promise( (resolve, reject) => {
+         // return new Promise( (resolve, reject) => {
            console.log("draw rect promise")
-
-           if (this.$data.selected_bad_labels.includes( cls['label'])) {
+           // let badLabels = this.$data.selected_bad_labels
+           if ((this.$data.selected_bad_labels) && (this.$data.selected_bad_labels.includes( cls['label']))) {
              var canvas = this.$refs.canvas_bad
              var ctx = canvas.getContext("2d")
              ctx.beginPath();
              console.log("bad")
              var strokeStyle = "red";
-           } else if (this.$data.selected_good_labels.includes( cls['label'])) {
+           } else if ((this.$data.selected_good_labels) && (this.$data.selected_good_labels.includes( cls['label']))) {
              var canvas = this.$refs.canvas_good
              var ctx = canvas.getContext("2d")
              ctx.beginPath();
@@ -2104,16 +2163,16 @@ ymin: 182 -->
              ctx.lineWidth = lineWidth
              ctx.strokeStyle = strokeStyle
              console.log(`drawing rectangle around object ${ctx.strokeStyle} ${ctx.lineWidth} ${cls['label']}`)
-
+             console.log(`location ${objectXMin}, ${objectYMin}, ${recWidth}, ${recHeight}`)
              ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
              ctx.stroke();
              ctx.font = "16px Arial";
              ctx.fillStyle = strokeStyle;
              ctx.fillText(cls['label'], objectXMin, objectYMin)
 
-             resolve()
+             // resolve()
            }
-        })
+        // })
       },
       submitInference(image, canvas_url, width=null, height=null) {
         console.log(`width ${width} height ${height}`)
@@ -2275,155 +2334,89 @@ ymin: 182 -->
                   let recWidth = maxX - minX
                   let recHeight = maxY - minY
 
-                  if ( (inference["classified"].length > 0) && this.$data.recBoundingBoxes)  {
-                    // ctx.clearRect(0,0,width, height)
-                    // this.$data.lastDraw = new Date.now()
-                    // var canvas = this.$refs.canvas_draw
+                  ctx.clearRect(0,0,canvas.offsetWidth, canvas.offsetHeight)
+                  ctx.strokeStyle = "green";
+                  ctx.beginPath();
+                  ctx.rect(minX, minY, recWidth, recHeight)
+                  ctx.stroke();
 
-                    // width is hardcoded as 300
-                    // height is 150
-                    console.log(`width ${width} height ${height}`)
-                    console.log(`canvas.offsetWidth ${canvas.offsetWidth} canvas.offsetHeight ${canvas.offsetHeight}`)
+                  var classesInRoi = []
+                  // process recognized classes
+                  if ( (inference["classified"].length > 0) && this.$data.recBoundingBoxes)  {
                     var wRatio = canvas.offsetWidth / width
                     var vRatio = canvas.offsetHeight / height
-                    ctx.clearRect(0,0,canvas.offsetWidth, canvas.offsetHeight)
 
-                    // draw bounding rectangle
-                    ctx.strokeStyle = "green";
-
-                    ctx.beginPath();
-                    ctx.rect(minX, minY, recWidth, recHeight)
-                    ctx.stroke();
 
                     // draw ROI
-                    // console.log("redrawing roi")
-                    // ctx.beginPath();
-                    // ctx.lineWidth = 3
-                    // ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
-                    // ctx.stroke();
 
                     // lets gen a ratio based on the real width/height (offset)
                     var results = []
-                    var goodInferences = []
-                    var badInferences = []
                     inference["classified"].map( (cls, idx) => {
+                      // get corrected coords for object
                       var objectYMax = cls['ymax'] * vRatio
                       var objectYMin = cls['ymin'] * vRatio
                       var objectXMax = cls['xmax'] * wRatio
                       var objectXMin = cls['xmin'] * wRatio
-
                       var recBoxYMin = this.$data.recBoundingBoxes['ymin'] //* vRatio
                       var recBoxYMax = this.$data.recBoundingBoxes['ymax'] //* vRatio
                       var recBoxXMin = this.$data.recBoundingBoxes['xmin'] //* wRatio
                       var recBoxXMax = this.$data.recBoundingBoxes['xmax'] //* wRatio
-                      console.log(`checking ROI ${cls['label']}`)
-                      console.log("object coords")
-                      console.log(`ymax: ${objectYMax} ymin ${objectYMin} xmax ${objectXMax} xmin ${objectXMin} `)
-                      console.log("recBoundingBoxes")
-                      console.log(this.$data.recBoundingBoxes)
-                      // console.log(`ymax: ${recBoundingBoxes['ymax']} ymin ${recBoundingBoxes['ymin']} xmax ${recBoundingBoxes['xmax']} xmin ${recBoundingBoxes['xmin']} `)
-                      console.log("this.$data.roiWidth")
-                      console.log(this.$data.roiWidth)
-                      console.log("this.$data.roiHeight")
-                      console.log(this.$data.roiHeight)
-                      console.log('-----')
-                      console.log("recBoxYMin <= objectYMax <= recBoxYMax")
-                      console.log(`${recBoxYMin} <= ${objectYMax} <= ${recBoxYMax}`)
-                      console.log(`${recBoxYMin <= objectYMax <= recBoxYMax}`)
-                      console.log("recBoxYMin <= objectYMin <= recBoxYMax")
-                      console.log(`${recBoxYMin} <= ${objectYMin} <= ${recBoxYMax}`)
-                      console.log(`${recBoxYMin <= objectYMin <= recBoxYMax}`)
-                      console.log("recBoxXMin <= objectXMax <= recBoxYMax")
-                      console.log(`${recBoxXMin} <= ${objectXMax} <= ${objectXMax}`)
-                      console.log(`${recBoxXMin <= objectXMax <= objectXMax}`)
-                      console.log("recBoxXMin <= objectXMin <= recBoxXMax")
-                      console.log(`${recBoxXMin} <= ${objectXMin} <= ${recBoxXMax}`)
-                      console.log(`${recBoxXMin <= objectXMin <= recBoxXMax}`)
-                      console.log('-----')
                       var labelInRoi = (( recBoxYMin <= objectYMax && objectYMax <= recBoxYMax ) ||
                                        ( recBoxYMin <= objectYMin && objectYMin <= recBoxYMax )) &&
                                        (( recBoxXMin <= objectXMax && objectXMax <= recBoxXMax ) ||
                                        ( recBoxXMin <= objectXMin && objectXMin <= recBoxXMax ))
-
+                      // if ( true) {
+                      if (labelInRoi) {
+                        classesInRoi.push(cls['label'])
+                      }
                       let recWidth = Math.abs(objectXMin - objectXMax)
                       let recHeight = Math.abs(objectYMin - objectYMax)
-                      console.log("recWidth recHeight")
-                      console.log(`${recWidth}, ${recHeight}`)
-                      console.log("objectXMin objectYMin")
-                      console.log(`${objectXMin} ${objectYMin}`)
+                      this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight, objectXMin, objectYMin)
 
-                      if ( true) {
-                            // (( this.$data.recBoundingBoxes['ymax'] <= objectYMax <= this.$data.recBoundingBoxes['ymin'] ) ||
-                            //  ( this.$data.recBoundingBoxes['ymin'] <= objectYMin <= this.$data.recBoundingBoxes['ymax'] )) &&
-                            // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
-                            // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+                      if (inference["classified"].length == (idx+1)) {
+                        console.log("processed all objects in this inference, checking for alert")
+                        // this.$data.alertConfigs.map()
+                        this.checkAlert(classesInRoi, date)
+                      }
 
-                            // draw label
-
-                            // if (this.$data.selected_bad_labels.includes( cls['label'])) {  //(labelInRoi) {
-                            //   console.log("appending bad promise")
-                            //   badInferences.push( this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight))
-                            // } else {
-                            //   console.log("appending good promise")
-                            //   goodInferences.push( this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight))
-                            // }
-
-                          // TODO, let user click on pie chart to filter down
-                          // TODO, only focus on ROI
-
-                          //
-
-                           let recWidth = Math.abs(objectXMin - objectXMax)
-                           let recHeight = Math.abs(objectYMin - objectYMax)
-                           this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight, objectXMin, objectYMin)
-                           if (this.$data.selected_bad_labels.includes( cls['label']) && labelInRoi ) {
-                              var alert = {
-                                "type": "Bad Label in ROI",
-                                "classes": cls['label'],
-                                "priority": "High",
-                                "date": date
-                              }
-                              console.log(`adding alert ${alert['type']}`)
-                              this.$data.alerts.push(alert)
-                            } else if (this.$data.selected_bad_labels.includes( cls['label']) && (!labelInRoi)) {
-                              var alert = {
-                                "type": "Bad Label outside of ROI",
-                                "classes": cls['label'],
-                                "priority": "High",
-                                "date": date
-                              }
-                              console.log(`adding alert ${alert['type']}`)
-                              this.$data.alerts.push(alert)
-                            } else if (this.$data.selected_good_labels.includes( cls['label']) && (labelInRoi)) {
-                              var alert = {
-                                "type": "Good Label in ROI",
-                                "classes": cls['label'],
-                                "priority": "Low",
-                                "date": date
-                              }
-                              console.log(`adding alert ${alert['type']}`)
-                              this.$data.alerts.push(alert)
-                            } else {
-                              console.log("no alerts")
-                            }
-                            console.log(this.$data.alerts)
-                            // results.push( {
-                            //   "labelInRoi": labelInRoi,
-                            //   "width": width,
-                            //   "cls": cls,
-                            //   "recWidth": recWidth,
-                            //   "recHeight": recHeight
-                            // })
-
+                      // default classes, should be adjusted
+                      if (this.$data.selected_bad_labels.includes( cls['label']) && labelInRoi ) {
+                         var alert = {
+                           "type": "Bad Label in ROI",
+                           "classes": cls['label'],
+                           "priority": "High",
+                           "date": date
+                         }
+                         console.log(`adding alert ${alert['type']}`)
+                         // this.$data.alerts.push(alert)
+                       } /*else if (this.$data.selected_bad_labels.includes( cls['label']) && (!labelInRoi)) {
+                         var alert = {
+                           "type": "Bad Label outside of ROI",
+                           "classes": cls['label'],
+                           "priority": "High",
+                           "date": date
+                         }
+                         console.log(`adding alert ${alert['type']}`)
+                         this.$data.alerts.push(alert)
+                       } else if (this.$data.selected_good_labels.includes( cls['label']) && (labelInRoi)) {
+                         var alert = {
+                           "type": "Good Label in ROI",
+                           "classes": cls['label'],
+                           "priority": "Low",
+                           "date": date
+                         }
+                         console.log(`adding alert ${alert['type']}`)
+                         this.$data.alerts.push(alert)
+                       } else {
+                         console.log("no alerts")
+                       }*/
                             // debugging
                             // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
                             // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
                             // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
                             // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMax, objectYMax)
-                            console.log("done drawing")
-
-                         }
-
+                         // }
+                         /*
                          else if (this.$data.selected_good_labels.includes( cls['label'])) {
                            console.log("good object found in ROI, drawing")
                            // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
@@ -2448,7 +2441,7 @@ ymin: 182 -->
                            // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
                            console.log("done drawing")
                          }
-                        else {
+                         else {
                           console.log("object NOT found in ROI, drawing")
                           // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
                           // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
@@ -2472,6 +2465,7 @@ ymin: 182 -->
                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
                           console.log("done drawing")
                         }
+                          */
                       })
                   }
                   // */
@@ -2671,23 +2665,26 @@ ymin: 182 -->
         }
         console.log(`getting models from ${mviUrl}`)
         console.log(`options ${JSON.stringify(options)}`)
+        var that = this
         // proxy needed for cors
         fetch(proxyUrl, options).then((res) => {
           res.json().then((models) => {
-            console.log(`models received ${JSON.stringify(models)}`)
+            console.log(`models received`)
             if (this.$data.edge) {
               this.$data.models = [models]
               this.$data.allmodels = [models]
-              this.refreshLabels()
+              that.refreshLabels()
             } else {
               this.$data.models = models.filter( (m) => m.deployed == '1'  )
               this.$data.allmodels = models
-              this.refreshLabels()
+              that.refreshLabels()
             }
           })
         })
       },
       refreshLabels() {
+        console.log("refreshing models for")
+        console.log(this.$data.selectedModelName)
         if (this.$data.selectedModelName) {
           this.setModel(this.$data.selectedModelName)
         }
