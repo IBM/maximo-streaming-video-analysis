@@ -8,7 +8,6 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const app = express();
 const cors = require('cors')
-const multer  = require('multer')
 const proxy = require('express-http-proxy');
 const ffmpeg = require('fluent-ffmpeg');
 const glob = require('glob');
@@ -19,8 +18,11 @@ const PassThrough = require('stream').PassThrough;
 const stream = require('stream')
 const uuid = require('uuid').v4
 
+const multer  = require('multer')
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage })
 
-
+const request = require('request')
 require('dotenv').config()
 
 console.log("Backend Server Started.")
@@ -50,6 +52,14 @@ app.use(function(req, res, next) {
 
 const bodyParser = require('body-parser')
 app.use(bodyParser.json());
+
+
+// app.use(bodyParser.raw({inflate: true, type: 'image/png'}));
+// app.use(bodyParser.json({verify:function(req,res,buf){
+//   req.rawBody=buf
+// }}))
+
+
 // bodyParser.raw({ type: 'application/vnd.custom-type' })
 
 var StringDecoder = require('string_decoder').StringDecoder;
@@ -62,13 +72,21 @@ app.use('/proxyget', function(req, res) {
     const url = headers['x-proxy-url']
     console.log(`url ${url}`)
     console.log(`req.url ${req.url}`)
-    const paiv_url = (url + req.url).replace('http://', 'https://');
+    // TODO, had force replaced http with https, that's not alwasy going to work!
+    if (url.includes('vision')) { // Hacky
+      var paiv_url = (url + req.url).replace('http://', 'https://')
+      console.log(`set paiv_url ${paiv_url}`)
+    } else {
+      var paiv_url = (url + req.url)
+      console.log(`set paiv_url ${paiv_url}`)
+    }
+
     console.log("sending proxy get request to " + paiv_url)
     const options = {
       url: paiv_url,
       headers: {
         'x-proxy-url': headers['x-proxy-url'],
-        'x-auth-token': headers['x-auth-token']
+        'x-auth-token': headers['x-auth-token'] || ""
       }  //Object.assign(headers, {'user-agent': 'node-fetch/1.0'})
     }
     console.log(`options ${JSON.stringify(options)}`)
@@ -127,18 +145,85 @@ var splitVideo = function(vid_path) {
   })
 }
 
+
+// const { spawn } = require("child_process");
+const { exec } = require("child_process");
+
+app.use('/mergeframes', function(req, res) {
+  console.log(req)
+  // console.log(Object.keys(req))
+  var outputFile = './out.mp4'
+  var output = fs.createWriteStream(outputFile);
+  // var textFile = fs.createWriteStream('./input.txt');
+  //var cmd = "ffmpeg -r 1/5 -y -r 1/5 -f concat -safe 0  -i input.txt -c:v libx264 -vf fps=25 -pix_fmt yuv420p out.mp4"
+  var cmd = "ffmpeg -y -f concat -safe 0 -i input.txt -vsync vfr -pix_fmt yuv420p out.mp4"
+  var fileContents = ""
+  // // videoCodec
+  // var cmd = ffmpeg()
+  // var inputOptions = ["-r", "60", "-f", "image2", "-s", "1920x1080"] //,  "-crf", "25", "-pix_fmt", "yuv420p"] // "-vcodec", "libx264",
+  // var outputOptions =  ['-vcodec libx264 -crf 25  -pix_fmt yuv420p']
+  let files = req.files
+  console.log(files)
+  var filenames = Object.keys(files)
+  filenames.map( (name, idx) => {
+    let file = files[name]
+    console.log(`handling file ${file.fieldName}`)
+    let path = file.path
+    console.log(`handling image at path ${path}`)
+    // inputOptions.push('-i', path)
+    fileContents += `file '${path}'\nduration 1\n`
+    console.log(`${idx} / ${filenames.length -1}`)
+    // cmd.addInput(path) //fs.createReadStream( path ))
+    // cmd.addInput('/var/folders/2k/hljc8qsn3fq3j8rkh4g9dy6m0000gn/T/i99pMRRaShDBJBCcHgbOaTjT.png')
+    if (idx == (filenames.length - 1)) {
+      fileContents += `file '${path}'`
+      console.log("inputs added, merging")
+      fs.writeFile('./input.txt', fileContents, function (err) {
+        if (err) throw err;
+        else {
+          // var cmd = spawn("ffmpeg", [cmdArgs.split(' ')]);
+          exec(cmd, (error, stdout, stderr) => {
+            // if ( error || stderr ) {
+            //   console.log("error with ffmpeg merge")
+            //   console.log(`${error}`)
+            //   console.log(`${stderr}`)
+            //   res.sendStatus(500)
+            // } else {
+              let filePath = process.cwd() + '/' + outputFile
+              console.log(`done with file, returning ${filePath}`)
+              res.sendFile(filePath)
+            // }
+          })
+
+
+        }
+      });
+
+      // console.log(inputOptions)
+      // cmd.inputOptions(inputOptions).output(output).outputOptions(outputOptions).on('end', function() {
+      //   console.log('Finished merging');
+      //   console.log(output);
+      // }).run();
+    }
+  })
+})
+
+// app.use('/proxypost', upload.array('photos'), function(req, res) {
 app.use('/proxypost', function(req, res) {
+  // var start = performance.now()
   // console.log(upload)
+  var postStart = Date.now()
   console.log("handling post request")
   console.log(`req.headers ${JSON.stringify(req.headers)}`)
 
+  console.log(Object.keys(req))
   var paiv_url = req.headers['x-proxy-url']
   var paiv_url_full = paiv_url + req.url;
   console.log(`paiv_url: ${paiv_url}`)
   console.log(`posting to ${paiv_url_full}`)
 
   var fragment = Object.keys(req.headers).includes('x-fragment-video')
-  console.log(`${fragment}  ${typeof fragment}`)
+  console.log(`fragment ${fragment}`)
   if (fragment) {
     var filename = req.headers['x-file-name']
     console.log("fragmenting video")
@@ -241,9 +326,18 @@ app.use('/proxypost', function(req, res) {
   // /*
   else {
     // TODO, uncomment, after getting split to work
+    console.log(`req.file ${JSON.stringify(req.file)}`)
+
     console.log(`req.files ${JSON.stringify(req.files)}`)
+    // console.log('buffer')
+    console.log(req.files)
+
+    // console.log(req.files[0].buffer)
     var filePath = req.files['blob']['path']
     console.log(`filePath ${filePath}`)
+    console.log(`body`)
+    console.log(req.body)
+    console.log(req.rawBody)
     var readStream = fs.createReadStream(filePath)
     var formData = {
       files: readStream,
@@ -252,7 +346,12 @@ app.use('/proxypost', function(req, res) {
     }
     try {
       // crashes server
-      require('request').post({url: paiv_url_full, formData: formData}).pipe(res)
+      console.log(`piping post ${postStart - Date.now()}`)
+      request.post({url: paiv_url_full, formData: formData}).pipe(res)
+      // .then(() => {
+      //   var end = Date.now()
+      //   console.log(`overhead in seconds: ${(postStart - start)/1000}`)
+      // } )
     } catch(err) {
       console.log(err)
     }
@@ -266,21 +365,6 @@ app.use('/proxypost', function(req, res) {
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-// var url = process.env.url
-// console.log("url")
-// console.log(url)
-// app.use('/proxy', proxy(url));
-
-// app.use('/token', function(req, res) {
-//   var url = req.url
-//   console.log(url)
-//   console.log(req)
-//   console.log(`setting up proxy for ${url}`)
-//   app.use('/proxy', proxy(url))
-// })
-
-
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

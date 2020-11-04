@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-import VFC from 'vfc'
+// import VFC from 'vfc'
 import VModal from 'vue-js-modal'
 
 // import Modal from './components/Modal.vue'
@@ -68,7 +68,7 @@ Vue.component('drag', Drag)
 
 Vue.config.productionTip = false
 
-Vue.use(VFC)
+// Vue.use(VFC)
 Vue.use(VModal)
 Vue.use(Router)
 Vue.component('Plotly', Plotly)
@@ -76,9 +76,24 @@ Vue.component('Plotly', Plotly)
 
 Object.defineProperty(Vue.prototype, '$JSZip', { value: JSZip });
 Object.defineProperty(Vue.prototype, '$jsPDF', { value: jsPDF });
+Vue.use(JSZip, "$JSZip")
 
-import Youtube from './components/Youtube.js'
-Vue.use(Youtube, "$Youtube")
+
+// import Youtube from './components/Youtube.js'
+// Vue.use(Youtube, "$Youtube")
+
+// import OpenCV from './components/OpenCV.js'
+// Vue.use(OpenCV, "$OpenCV")
+
+
+// import tracking from 'tracking'
+// Object.defineProperty(Vue.prototype, '$tracking', { value: tracking });
+
+// import tracking from 'tracking'
+// Object.defineProperty(Vue.prototype, '$Tracking', { value: Tracking });
+// Vue.use(Tracking, "$Tracking")
+// Vue.use(require('tracking'))
+
 
 // Object.defineProperty(Vue.prototype, '$JSMpeg', { value: JSMpeg });
 

@@ -19,6 +19,7 @@
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton>
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="getModels()">Get Models</CvButton> -->
+        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-config'})">View Current Configuration</CvButton> -->
       </div>
     </div>
 
@@ -86,12 +87,12 @@
 
 
             <!-- Canvas to show good labels -->
-            <div style="width: 100%;height:50%; position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_good_draw_div" id="canvas_good_draw_div">
+            <div style="width: 100%;position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_good_draw_div" id="canvas_good_draw_div">
               <canvas style="width:100%;z-index: 99;" ref="canvas_good" id="canvas_good"></canvas>
             </div>
 
             <!-- Canvas to show bad labels -->
-            <div style="width: 100%;height:50%; position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_bad_draw_div" id="canvas_bad_draw_div">
+            <div style="width: 100%;position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_bad_draw_div" id="canvas_bad_draw_div">
               <canvas style="width:100%;z-index: 99" ref="canvas_bad" id="canvas_bad"></canvas>
             </div>
 
@@ -209,7 +210,7 @@ ymin: 182 -->
             </div> -->
             <h5 style="justify-content: center; align-items: center;">Results by Category</h5>
             <div style="position:relative;left:-100px;z-index:0">
-              <Plotly :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly>
+              <Plotly @click=filterInferences :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly>
             </div>
 
             <!-- <ccv-donut-chart style="padding: 10px;" :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart> -->
@@ -221,7 +222,7 @@ ymin: 182 -->
     <!-- <div class="bx--col-md-12">
       <ccv-donut-chart :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart>
     </div> -->
-    <template v-if="inferences.length > 0">
+    <template v-if="alerts.length > 0">
       <div class="bx--col-md-4" style=height:600px;overflow-y:auto;>
         <cv-data-table title="Alerts" :zebra=true :columns="['Type', 'Date', 'Classes', 'Priority']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
           <template v-if="use_htmlData" slot="data">
@@ -293,8 +294,28 @@ ymin: 182 -->
           </div>
       </modal>
 
+
+
+
+      <modal name="view-config" height="auto" style="z-index: 3000;">
+          <h1 align="center"> View Configuration </h1>
+            <h3>{{selectedModelName}}</h3>
+          <!-- <div style="margin-left: auto; margin-right: auto;width: 75%; padding: 10px;"> -->
+            <cv-tile v-for="alert in alertConfigs" >
+              <h1>{{alert.title}}</h1>
+              <p>{{alert.existingLabels}}</p>
+              <p>{{alert.missingLabels}}</p>
+              <p>{{alert.priority}}</p>
+            </cv-tile>
+
+          <!-- </div> -->
+          <div>
+            <cv-button @click="hideModal({name: 'view-config'})">Close</cv-button>
+          </div>
+      </modal>
+
       <modal name="add-rule" height="auto" style="z-index: 3000;">
-        {{alertConfigs}}
+
         <h2 text-align="center">Configure Alerts</h2>
         <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="addAlert">
           <cv-text-input
@@ -613,25 +634,30 @@ ymin: 182 -->
 </template>
 
 <script>
-  import 'vfc/dist/vfc.css'
-  import {
-    Input
-  } from 'vfc'
-  import {
-    Form
-  } from 'vfc'
-  import {
-    FormItem
-  } from 'vfc'
-  import {
-    Button
-  } from 'vfc'
+  // import 'vfc/dist/vfc.css'
+  // import {
+  //   Input
+  // } from 'vfc'
+  // import {
+  //   Form
+  // } from 'vfc'
+  // import {
+  //   FormItem
+  // } from 'vfc'
+  // import {
+  //   Button
+  // } from 'vfc'
 
   export default {
     name: 'app',
     created() {
-      var Youtube = new this.$Youtube()
+      // var Youtube = new this.$Youtube()
       var player
+      var JSZip = new this.$JSZip()
+      console.log("jszip")
+      console.log(JSZip)
+
+      // var cv = new this.$OpenCV()
     },
 
     directives: {
@@ -725,6 +751,7 @@ ymin: 182 -->
     },
     data() {
       return {
+        allInferences: [],
         restMethod: "",
         actionPassword: "",
         actionUserName: "",
@@ -745,7 +772,7 @@ ymin: 182 -->
         alertTitle: "",
         alertExistingLabels: [],
         alertMissingLabels: [],
-        edge: true, //process.env.VUE_APP_EDGE || false,
+        edge: false, //process.env.VUE_APP_EDGE || false,
         drawing: false,
         recStart: {},
         drawnRois: [],
@@ -835,7 +862,6 @@ ymin: 182 -->
               "threshold": 200,
               "numCharacter": 200
             },
-            // "height": "300px"
           },
           // "data": {
             // "loading": true
@@ -991,10 +1017,10 @@ ymin: 182 -->
       }
     },
     components: {
-      Form,
-      FormItem,
-      [Input.name]: Input,
-      [Button.name]: Button
+      // Form,
+      // FormItem,
+      // [Input.name]: Input,
+      // [Button.name]: Button
     },
     beforeMount() {
       // this.getInferences()
@@ -1004,6 +1030,11 @@ ymin: 182 -->
       recaptchaScript.setAttribute('src', `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/scripts/jsmpeg.min.js`)
       document.head.appendChild(recaptchaScript)
 
+      let trackerScript = document.createElement('script')
+      trackerScript.setAttribute('src', `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/scripts/tracking-min.js`)
+      document.head.appendChild(trackerScript)
+      console.log(`loading tracking script from`)
+      console.log(`${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/scripts/tracking-min.js`)
     },
     mounted() {
       this.video = this.$refs.video;
@@ -1035,20 +1066,46 @@ ymin: 182 -->
       var topMargin = canvas.offsetTop + "px"
       this.adjustDrawCanvas(canvas.offsetWidth, canvas.offsetHeight, topMargin)
 
+      const resize_ob = new ResizeObserver( (entries) => {
+      	// since we are observing only a single element, so we access the first element in entries array
+      	let rect = entries[0].contentRect;
+
+      	// current width & height
+      	let width = rect.width;
+      	let height = rect.height;
+        console.log("remote video size adjusted")
+      	console.log('Current Width : ' + width);
+      	console.log('Current Height : ' + height);
+        this.adjustDrawCanvas()
+      });
+      resize_ob.observe(this.$refs.remote_video)
+
       let debug = false
       if (debug) {
         this.$refs.canvas_bad_draw_div.style.border = 'dotted'
         this.$refs.canvas_bad_draw_div.style.borderColor = 'red'
 
+        this.$refs.canvas_bad.style.border = 'dotted'
+        this.$refs.canvas_bad.style.borderColor = 'red'
+        this.$refs.canvas_bad.style.borderWidth = 'thin'
+
         this.$refs.canvas_good_draw_div.style.border = 'dotted'
         this.$refs.canvas_good_draw_div.style.borderColor = 'green'
+        this.$refs.canvas_good_draw_div.style.borderWidth = 'thick'
+
+        this.$refs.canvas_good.style.border = 'dashed'
+        this.$refs.canvas_good.style.borderColor = 'green'
+        this.$refs.canvas_good.style.borderWidth = 'thin'
+
 
         this.$refs.canvas_draw.style.border = 'dotted'
         this.$refs.canvas_draw.style.borderColor = 'blue'
+        this.$refs.canvas_draw.style.borderWidth = 'thin'
 
         this.$refs.videoHeader.style.border = 'dotted'
 
       }
+
       // document.getElementById('canvas_draw').style.height
       // this.$refs.canvas_draw.style.height = this.$refs.canvas.style.height
       // this.$refs.canvas_draw.style.width = this.$refs.canvas.style.width
@@ -1056,6 +1113,15 @@ ymin: 182 -->
       // this.getInferenceDetails();
     },
     methods: {
+      printTracker() {
+        // var tracking = new this.$Tracking()
+        // console.log("tracking")
+        // console.log(tracking)
+        var track = new tracking.ColorTracker(['magenta', 'cyan', 'yellow']) //.Tracker('webcam') //this.$tracking.Tracker('webcam')
+        console.log("tracking")
+        console.log(track)
+
+      },
       addAlert() {
         let alert = {
           title: this.$data.alertTitle,
@@ -1117,28 +1183,20 @@ ymin: 182 -->
 
       },
       hover(ev) {
-        //
         var canvas = this.$refs.canvas_cursor
         console.log("hovering canvas")
-
-        // canvas.width = canvas.offsetWidth
-        // canvas.height = canvas.offsetHeight
         var ctx = canvas.getContext("2d")
         var ctxCoords = canvas.getBoundingClientRect()
         var mouseX = ev.clientX - ctxCoords.left  // ev.layerX //width - ev.
         var mouseY = ev.clientY - ctxCoords.top
 
-
-        if (false) { // (this.$data.drawing) {
+        if (this.$data.drawing) {
           console.log("previewing rectangle")
           // ctx.arc(mouseX, mouseY, 2, 0, 2 * Math.PI);
-
-          ctx.clearRect(0,0, canvas.width, canvas.height)
-          ctx.beginPath();
-
           let recStartX = this.$data.recStart['x']
           let recStartY = this.$data.recStart['y']
-
+          ctx.clearRect(0,0, canvas.width, canvas.height)
+          ctx.beginPath();
           /*
           if (recStartY > mouseY) {
             var yStart = recStartY
@@ -1158,24 +1216,28 @@ ymin: 182 -->
           let recWidth = xEnd - xStart
           let recHeight = yEnd - yStart
           */
-
           //
           // ctx.scale(-1, 1)
-          // console.log(`xStart ${xStart} yStart ${yStart}`)
+          console.log("drawing preview rectangle")
           console.log(`mouseX ${mouseX} mouseY ${mouseY}`)
-
           let recWidth = mouseX - recStartX
           let recHeight = mouseY - recStartY
           console.log(`recWidth ${recHeight} recHeight ${recHeight}`)
           ctx.rect(recStartX, recStartY, recWidth, recHeight)
           ctx.stroke();
           console.log("drew preview rectangle")
-        } else if (this.$data.previewCursor) {
+        } else { //if (this.$data.previewCursor) {
           console.log("updating cursor")
           ctx.clearRect(0,0, canvas.width, canvas.height)
           ctx.beginPath();
-          ctx.arc(mouseX, mouseY, 2, 0, 2 * Math.PI);
+          ctx.strokeStyle = "white"
+          ctx.arc(mouseX, mouseY, 3, 0, 2 * Math.PI);
+          ctx.fillStyle = "white";
+          ctx.fill();
+          ctx.font = '15px Verdana';
+          ctx.fillText(`Click to begin drawing ROI`, mouseX + 10, mouseY + 5)
           ctx.stroke();
+
         }
 
       },
@@ -1183,18 +1245,13 @@ ymin: 182 -->
       drawROI() {
         console.log("user clicked draw roi")
         this.$data.instructionsROI = "Click point on video stream to begin drawing ROI"
-        var canvas = this.$refs.canvas_cursor
-        var ctx = canvas.getContext("2d")
-        ctx.font = "16px Arial";
-        ctx.fillStyle = "white";
-        ctx.fillText("Click to begin drawing", canvas.offsetWidth / 2, 5)
-        ctx.stroke()
-        this.$data.previewCursor = true
+        // var canvas = this.$refs.canvas_cursor
+        // var ctx = canvas.getContext("2d")
+        // ctx.font = "16px Arial";
+        // ctx.fillStyle = "white";
         // ctx.beginPath();
-        // ctx.arc(mouseX, mouseY, 5, 0, 2 * Math.PI);
-        // ctx.stroke();
-
-        // this.$refs.canvas_draw.
+        // ctx.fillText("Click to begin drawing", canvas.offsetWidth / 2, 5)
+        // ctx.stroke()
       },
       startRectangle() {
         console.log("starting rectangle")
@@ -1203,9 +1260,7 @@ ymin: 182 -->
         console.log("ending rectangle")
       },
       draw(ev) {
-        this.$data.drawing = ! this.$data.drawing
         console.log(ev)
-        console.log("----drawing----")
         var canvas = this.$refs.canvas_draw
         // canvas.width = canvas.offsetWidth
         // canvas.height = canvas.offsetHeight
@@ -1218,6 +1273,12 @@ ymin: 182 -->
         // canvas.height = canvas.offsetHeight
         var ctx = canvas.getContext("2d")
         var ctxCoords = canvas.getBoundingClientRect()
+        var xRatio = this.$refs.canvas_draw.width
+        var yRatio = this.$refs.canvas_draw.height
+        var mouseX = ev.clientX - ctxCoords.left  // ev.layerX //width - ev.
+        var mouseY = ev.clientY - ctxCoords.top
+
+        /*
         console.log(`coords \n\nctxCoords.left ${ctxCoords.left} \nctxCoords.right ${ctxCoords.right} \ntop ${ctxCoords.top} \nbottom ${ctxCoords.bottom} `)
         // var mouseX = ev.layerX //clientX
         // var mouseY = ev.layerY //clientY
@@ -1227,39 +1288,39 @@ ymin: 182 -->
         console.log(`ev.layerX ${ev.layerX} ev.layerY ${ev.layerY} `)
         console.log(`ev.clientX ${ev.clientX} ev.clientY ${ev.clientY} `)
         console.log(`ev.screenX ${ev.screenX} ev.screenY ${ev.screenY} `)
-
-        var xRatio = this.$refs.canvas_draw.width
-        var yRatio = this.$refs.canvas_draw.height
+        */
+        /*
         // ctx.beginPath();
         // ctx.rect(10, 10, 20, 20)
         // ctx.stroke();
+        console.log(`mouseX ${mouseX}`)
+        console.log(`mouseY ${mouseY}`)
 
 
-        var mouseX = ev.clientX - ctxCoords.left  // ev.layerX //width - ev.
-        var mouseY = ev.clientY - ctxCoords.top
 
         // var mouseX = ev.pageX - ev.offsetX
         // var mouseY = ev.pageY - ev.offsetY
 
         // var mouseX = ev.pageX - ctxCoords.left  // ev.layerX //width - ev.
         // var mouseY = ev.pageY - ctxCoords.top
+        */
 
         ctx.beginPath();
-        ctx.arc(mouseX, mouseY, 5, 0, 2 * Math.PI);
-        ctx.stroke();
+        // ctx.arc(mouseX, mouseY, 5, 0, 2 * Math.PI);
+        // ctx.stroke();
 
-        console.log(`mouseX ${mouseX}`)
-        console.log(`mouseY ${mouseY}`)
-        // start new rectangle
-
-        if (! this.$data.drawing) {
+        var drawing = ! this.$data.drawing
+        if (drawing) {
           console.log(`---- starting new rectangle at points ${mouseX} ${mouseY}`)
           ctx.clearRect(0,0,width, height)
           // ctx.beginPath();
           this.$data.recStart = {'x': mouseX, 'y': mouseY}
+          console.log("set beginning points")
+          console.log(this.$data.recStart)
           // ctx.rect(20, 20, 100, 100);
-        // end rectangle
+          this.$data.drawing = drawing
         } else {
+          // end rectangle
           console.log(`---- ending rectangle at points ${mouseX} ${mouseY}`)
           this.$data.recEnd = {'x': mouseX, 'y': mouseY}
           // calculate bounding boxes
@@ -1281,10 +1342,22 @@ ymin: 182 -->
           console.log(`recWidth ${recWidth} recHeight ${recHeight}`)
           ctx.rect(minX, minY, recWidth, recHeight)
           ctx.stroke();
+          this.$data.drawing = drawing
         }
       },
       showTooltip(ev) {
         console.log(ev)
+      },
+      filterInferences(ev) {
+        console.log("filtering inferences")
+        console.log(ev)
+        // let category = ev.event.originalTarget.__data__.label
+        let category = ev.points[0].label
+        console.log(category)
+
+
+        // this.$data.inferences = this.$data.allInferences
+
       },
       printColors() {
         // var c = this.$refs.donut_chart
@@ -1335,7 +1408,7 @@ ymin: 182 -->
           })
         })
       },
-      adjustDrawCanvas(vidWidth, vidHeight, topMargin) {
+      adjustDrawCanvas() {
         // var vidWidth = that.$refs.remote_video.offsetWidth
         // var vidHeight = that.$refs.remote_video.offsetHeight
         // var topMargin = that.$refs.remote_video_div.offsetTop + "px"
@@ -1343,15 +1416,32 @@ ymin: 182 -->
         // that.$refs.canvas_draw.width = vidWidth
         // that.$refs.canvas_draw.height = vidHeight
         // document.getElementById('canvas_draw_div').style.top
-        console.log(`vidWidth ${vidWidth} vidHeight ${vidHeight}`)
+        // /*
+        var vidWidth = this.$refs.remote_video.offsetWidth
+        var vidHeight = this.$refs.remote_video.offsetHeight
+        var topMargin = this.$refs.remote_video_div.offsetTop + "px"
+        console.log(`setting height ${vidHeight}`)
+
+        this.$refs.canvas.width = vidWidth
+        this.$refs.canvas.height = vidHeight
+
+
+        this.$refs.canvas_draw.width = vidWidth
+        this.$refs.canvas_draw.height = vidHeight
         this.$refs.canvas_draw_div.style.top = topMargin
         this.$refs.canvas_good.width = vidWidth
         this.$refs.canvas_bad.width = vidWidth
-        this.$refs.canvas_good_draw_div.height = vidHeight
-        this.$refs.canvas_bad_draw_div.height = vidHeight
+        this.$refs.canvas_good.height = vidHeight
+        this.$refs.canvas_bad.height = vidHeight
+        // this.$refs.canvas_good_draw_div.height = vidHeight
+        // this.$refs.canvas_bad_draw_div.height = vidHeight
         this.$refs.canvas_good_draw_div.style.top = topMargin
         this.$refs.canvas_bad_draw_div.style.top = topMargin
 
+        this.$refs.canvas_cursor.width = vidWidth
+        this.$refs.canvas_cursor.height = vidHeight
+        this.$refs.canvas_cursor_div.style.top = topMargin
+        // */
       },
       uploadFile() {
         this.$data.streamingType = "file"
@@ -1396,6 +1486,7 @@ ymin: 182 -->
 
         var that = this;
         // adjust size of canvas
+        /*
         this.$refs.remote_video.onloadeddata = function() {
           console.log("remote video loaded, adjusting drawing canvas")
           // that.$refs.canvas_draw.offsetWidth = that.$refs.remote_video.offsetWidth
@@ -1410,10 +1501,10 @@ ymin: 182 -->
           // document.getElementById('canvas_draw_div').style.top
           console.log(`vidWidth ${vidWidth} vidHeight ${vidHeight}`)
           that.$refs.canvas_draw_div.style.top = topMargin
-
           that.$refs.canvas_good.width = vidWidth
           that.$refs.canvas_bad.width = vidWidth
-
+          that.$refs.canvas_good.height = vidHeight
+          that.$refs.canvas_bad.height = vidHeight
 
           that.$refs.canvas_good_draw_div.height = vidHeight
           that.$refs.canvas_bad_draw_div.height = vidHeight
@@ -1428,7 +1519,7 @@ ymin: 182 -->
           // that.$refs.canvas_draw.offsetHeight = that.$refs.remote_video.offsetHeight
 
         }
-
+        */
       },
       restartStream() {
         console.log("end event triggered, restarting stream")
@@ -1489,6 +1580,7 @@ ymin: 182 -->
             this.$refs.remote_video.style.visibility = "visible"
             this.$refs.remote_video.pause()
             this.$refs.remote_video.src = ""
+
             res.json().then( (res) => {
               console.log(res)
               console.log(`setting vid stream ${res.url}`)
@@ -1497,25 +1589,40 @@ ymin: 182 -->
               this.$refs.remote_video.src = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/ytstream`
               this.$refs.remote_video.load()
               // adjusting drawing canvas
-              this.$refs.remote_video.loadeddata = function() {
-                console.log("remote video loaded, adjusting drawing canvas")
-                var vidWidth = that.$refs.remote_video.offsetWidth
-                var vidHeight = that.$refs.remote_video.offsetHeight
-                var topMargin = that.$refs.remote_video_div.offsetTop + "px"
-                console.log(that.$refs.remote_video.offsetHeight)
-                that.$refs.canvas_draw.width = vidWidth
-                that.$refs.canvas_draw.height = vidHeight
-                // document.getElementById('canvas_draw_div').style.top
-                console.log(`vidWidth ${vidWidth} vidHeight ${vidHeight}`)
-                that.$refs.canvas_draw_div.style.top = topMargin
-                that.$refs.canvas_good.width = vidWidth
-                that.$refs.canvas_bad.width = vidWidth
-                that.$refs.canvas_good_draw_div.height = vidHeight
-                that.$refs.canvas_bad_draw_div.height = vidHeight
-                that.$refs.canvas_good_draw_div.style.top = topMargin
-                that.$refs.canvas_bad_draw_div.style.top = topMargin
+              // onload
+              // this.$refs.remote_video.oncanplaythrough = this.adjustDrawCanvas()
+              /*
+              this.$refs.remote_video.onloadstart = function() {
+                console.log("loadstart event")
+                console.log("youtube video loaded, adjusting drawing canvas")
+                var vidWidth = this.$refs.remote_video.offsetWidth
+                var vidHeight = this.$refs.remote_video.offsetHeight
+                var topMargin = this.$refs.remote_video_div.offsetTop + "px"
+                console.log(`setting height ${vidHeight}`)
+
+                this.$refs.canvas_draw.width = vidWidth
+                this.$refs.canvas_draw.height = vidHeight
+                this.$refs.canvas_draw_div.style.top = topMargin
+                this.$refs.canvas_good.width = vidWidth
+                this.$refs.canvas_bad.width = vidWidth
+                this.$refs.canvas_good.height = vidHeight
+                this.$refs.canvas_bad.height = vidHeight
+                this.$refs.canvas_good_draw_div.height = vidHeight
+                this.$refs.canvas_bad_draw_div.height = vidHeight
+                this.$refs.canvas_good_draw_div.style.top = topMargin
+                this.$refs.canvas_bad_draw_div.style.top = topMargin
+                this.$refs.canvas_cursor.width = vidWidth
+                this.$refs.canvas_cursor.height = vidHeight
+                this.$refs.canvas_cursor_div.style.top = topMargin
 
               }
+              */
+
+              // this.$refs.remote_video.onloadeddata = function() {
+              //   console.log("loadeddata event")
+              // }
+
+              // }
 
             })
           } else {
@@ -1653,8 +1760,8 @@ ymin: 182 -->
         console.log(JSON.stringify(this.$data.modelConfigs))
         if ( Object.keys(this.$data.modelConfigs).includes(modelName)) {
           console.log("loading model config")
-          this.$data.selected_good_labels = this.$data.modelConfigs[modelName]['good']
-          this.$data.selected_bad_labels = this.$data.modelConfigs[modelName]['bad']
+          this.$data.selected_good_labels = this.$data.modelConfigs[modelName]['good'] || []
+          this.$data.selected_bad_labels = this.$data.modelConfigs[modelName]['bad'] || []
         }
       },
       updateModelConfig() {
@@ -1710,8 +1817,8 @@ ymin: 182 -->
           console.log(`good labels ${this.$data.selected_good_labels}`)
           let modelName = this.$data.selectedModelName
           let modelConfig = {
-              positive: this.$data.selected_good_labels,
-              negative: this.$data.selected_bad_labels
+              positive: this.$data.selected_good_labels || [],
+              negative: this.$data.selected_bad_labels || []
           }
           this.$data.modelConfigs[modelName] = modelConfig
           console.log("saved new modelconfigs")
@@ -1868,8 +1975,12 @@ ymin: 182 -->
           } else if ((this.$data.isStreaming) && ((this.$data.streamingType == 'youtube') || (this.$data.streamingType == 'file')  ) ) {
             console.log("sampling youtube video")
             this.canvas = this.$refs.canvas;
-            var width = this.canvas.offsetWidth
-            var height = this.canvas.offsetHeight
+            // var width = this.canvas.offsetWidth
+            // var height = this.canvas.offsetHeight
+
+            var width = this.$refs.remote_video.offsetWidth
+            var height = this.$refs.remote_video.offsetHeight
+            console.log(`sampling size ${width} ${height}`)
             var context = this.canvas.getContext("2d").drawImage(this.$refs.remote_video, 0, 0, width, height);
             // var image = context.drawImage(this.$refs.remote_video, 0, 0, width, height);
             var canvas_url = this.canvas.toDataURL("image/png")
@@ -2127,20 +2238,22 @@ ymin: 182 -->
         }).catch( err => console.log(`getting models error ${err} `) )
       },
       */
-      drawRectStream(labelInRoi, width, cls, recWidth, recHeight,objectXMin, objectYMin) {
+      drawRectStream(labelInRoi, width, cls, recWidth, recHeight,objectXMin, objectYMin, goodCtx, badCtx) {
          // return new Promise( (resolve, reject) => {
            console.log("draw rect promise")
            // let badLabels = this.$data.selected_bad_labels
            if ((this.$data.selected_bad_labels) && (this.$data.selected_bad_labels.includes( cls['label']))) {
-             var canvas = this.$refs.canvas_bad
-             var ctx = canvas.getContext("2d")
-             ctx.beginPath();
+             // var canvas = this.$refs.canvas_bad
+             // var ctx = canvas.getContext("2d")
+             var ctx = badCtx
+             // ctx.beginPath();
              console.log("bad")
              var strokeStyle = "red";
            } else if ((this.$data.selected_good_labels) && (this.$data.selected_good_labels.includes( cls['label']))) {
-             var canvas = this.$refs.canvas_good
-             var ctx = canvas.getContext("2d")
-             ctx.beginPath();
+             // var canvas = this.$refs.canvas_good
+             // var ctx = canvas.getContext("2d")
+             var ctx = goodCtx
+             // ctx.beginPath();
              console.log("good")
              var strokeStyle = "green";
            } else {
@@ -2174,325 +2287,328 @@ ymin: 182 -->
            }
         // })
       },
-      submitInference(image, canvas_url, width=null, height=null) {
-        console.log(`width ${width} height ${height}`)
-        // post to powerai when user clicks "upload"
+    submitInference(image, canvas_url, width=null, height=null) {
+      console.log(`width ${width} height ${height}`)
+      // post to powerai when user clicks "upload"
 
-        let model = this.$data.selectedModel
-        console.log(`image type ${typeof image}`)
-        console.log(`submitting inference to model ${model['name']}`)
-          var headers = {
-            "X-Proxy-URL": this.$data.mviUrl  //this.$data.url
+      let model = this.$data.selectedModel
+      console.log(`image type ${typeof image}`)
+      console.log(`submitting inference to model ${model['name']}`)
+        var headers = {
+          "X-Proxy-URL": this.$data.mviUrl  //this.$data.url
+        }
+
+        var blobAppended = true
+        var formData = new FormData()
+        formData.append('blob', image, 'image.png')
+        if (blobAppended) {
+          var options = {
+            method: "POST",
+            body: formData,
+            headers: headers
           }
+          if (this.$data.edge) {
+            console.log("posting to edge endpoint")
+            var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxypost/inference`
+          } else {
+            console.log("posting to MVI endpoint")
+            var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxypost` + "/api/dlapis/" + model['_id']
+          }
+          console.log(`url ${url}`)
+          var beforeFetch = performance.now();
 
-          var blobAppended = true
-          var formData = new FormData()
-          formData.append('blob', image, 'image.png')
-          if (blobAppended) {
-            var options = {
-              method: "POST",
-              body: formData,
-              headers: headers
-            }
-            if (this.$data.edge) {
-              console.log("posting to edge endpoint")
-              var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxypost/inference`
-            } else {
-              console.log("posting to MVI endpoint")
-              var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxypost` + "/api/dlapis/" + model['_id']
-            }
-            console.log(`url ${url}`)
-            fetch(url, options).then((res) => {
-              console.log("inference uploaded")
-              // TODO, show a "loading" gif until inference is fully uploaded?
-              res.json().then((result) => {
-                var canvas = this.$refs.canvas_good
+          fetch(url, options).then((res) => {
+            console.log("inference uploaded")
+            console.log(`took ${(performance.now() - beforeFetch)/1000} seconds to receive inference raw result`)
+            // TODO, show a "loading" gif until inference is fully uploaded?
+
+            var beforeClear = performance.now();
+            var goodCanvas = this.$refs.canvas_good
+            var goodCtx = goodCanvas.getContext("2d")
+            goodCtx.clearRect(0,0, goodCanvas.width, goodCanvas.height)
+
+            var badCanvas = this.$refs.canvas_bad
+            var badCtx = badCanvas.getContext("2d")
+            badCtx.clearRect(0,0, badCanvas.width, badCanvas.height)
+
+            goodCtx.beginPath()
+            badCtx.beginPath()
+
+            console.log(`took ${(performance.now() - beforeClear)/1000} seconds to clear canvas`)
+            res.json().then((result) => {
+              console.log(`took ${(performance.now() - beforeFetch)/1000} seconds to parse inference result json`)
+              // cases
+              // append image inference (object or classification)
+              // handle array of images (classification)
+              // upload video, no need to append inference results
+              if (Object.keys(result).includes('classified')) {
+                // process single image
+                this.$data.inferenceDetails[result.imageMd5] = {}
+                console.log('imageUrl')
+                console.log(result['imageUrl'])
+                if (Object.keys(result).includes("imageUrl")) {
+                  var endpoint = '/uploads' + result.imageUrl.split('/uploads')[1]
+                  var filename = endpoint.split('/').slice(-1)[0]
+                } else {
+                  var endpoint = null
+                  var filename = null
+                }
+
+                /*
+                // clear canvas_draw box?
+                var canvas = this.$refs.canvas_draw
                 var ctx = canvas.getContext("2d")
-                ctx.clearRect(0,0,canvas.width, canvas.height)
+                if (Array.isArray(result.classified) && (result.classified.length < 1) ) {
+                  console.log("skipping inference, no results detected")
+                  console.log("clearing boxes")
+                  ctx.clearRect(0,0,canvas.width, canvas.height)
+                  return
+                }
+                */
+                if (this.$data.selectedModel.usage == 'cod') { // TODO, see if there are other object detection models
+                  // object detection
+                  var analysis_type = 'object_detection'
+                } else {
+                  // classification
+                  var analysis_type = 'classification'
+                  // get labels
+                  var labels = Array.from(new Set(Object.keys(result.classified).map((c) => c)))
+                  labels.map((l) => {
+                    var r = Object.keys(result.classified).filter(c => c.label == l)
+                    var count = r.length //Array.from((new Set(r))).length
+                    console.log("count for " + l)
+                    this.$data.inferenceDetails[result.imageMd5][l] = {"count": count, "score": result.classified[l]}
+                    // this.$data.inferenceDetails[result.imageMd5]['score'] = result.classified[l]
+                  })
 
-                var canvas = this.$refs.canvas_bad
-                var ctx = canvas.getContext("2d")
-                ctx.clearRect(0,0,canvas.width, canvas.height)
-
-                // cases
-                // append image inference (object or classification)
-                // handle array of images (classification)
-                // upload video, no need to append inference results
-                if (Object.keys(headers).includes('X-Fragment-Video')) {
-                  // process multiple images as video (classification only)
-                  // want to be able to overlay heatmaps on video
-
-                  var inference = {
-                    _id: result[0].id,
-                    analysis_type: "video_classifier", //"image",
-                    created_date: (new Date().toJSON()),
-                    thumbnail_path: result[0]['imageUrl'], //'/uploads' + endpoint,
-                    status: result[0]['result'],
-                    filename: "capture_" + (new Date().toJSON()), //filename,
-                    model_id: this.$data.selectedModel['_id'],
-                    heatmap: result.map( r => r.heatmap ), //heatmap,
-                    classified: result.map( r => r.classified ), //result['classified'],
-                    url: this.$data.url,
-                    width: width,
-                    height: height
-                  }
-                  console.log("appending video classification inference ")
-                  console.log(inference)
-                  // this.$data.inferences.push(inference)
-
-                  this.$data.inferences.unshift(inference)
-
-                } else if (Object.keys(result).includes('classified')) {
-                  // process single image
-                  this.$data.inferenceDetails[result.imageMd5] = {}
-
-                  if (Object.keys(result).includes("imageUrl")) {
-                    var endpoint = result.imageUrl.split('/uploads')[1]
-                    var filename = endpoint.split('/').slice(-1)[0]
+                  // get heatmap
+                  if (Object.keys(result).includes('heatmap')) {
+                    var heatmap = result['heatmap']
                   } else {
-                    var endpoint = null
-                    var filename = null
+                    var heatmap = ""
                   }
-                  // var labels = Array.from(new Set(result.classified.map((c) => c.label)))
+                }
 
-                  // if classified is "array", we're receiving results of "object detection"
-                  // if (Array.isArray(result.classified)) {
-                  // ['usage'] == 'cic' // classification
-                  // ['usage'] == 'cod' // object detection
-                  var canvas = this.$refs.canvas_draw
-                  var ctx = canvas.getContext("2d")
-                  if (Array.isArray(result.classified) && (result.classified.length < 1) ) {
-                    console.log("skipping inference, no results detected")
-                    console.log("clearing boxes")
-                    // ctx.clearRect(0,0,canvas.width, canvas.height)
-                    return
-                  }
-                  console.log(this.$data.selectedModel.usage)
-                  if (this.$data.selectedModel.usage == 'cod') { // TODO, see if there are other object detection models
-                    // object detection
-
-                    var analysis_type = 'object_detection'
-                  } else {
-                    // classification
-                    var analysis_type = 'classification'
-                    // get labels
-                    var labels = Array.from(new Set(Object.keys(result.classified).map((c) => c)))
-                    labels.map((l) => {
-                      var r = Object.keys(result.classified).filter(c => c.label == l)
-                      var count = r.length //Array.from((new Set(r))).length
-                      console.log("count for " + l)
-                      this.$data.inferenceDetails[result.imageMd5][l] = {"count": count, "score": result.classified[l]}
-                      // this.$data.inferenceDetails[result.imageMd5]['score'] = result.classified[l]
-                    })
-
-                    // get heatmap
-                    if (Object.keys(result).includes('heatmap')) {
-                      var heatmap = result['heatmap']
-                    } else {
-                      var heatmap = ""
-                    }
-                  }
-
-                  // TODO, curretly have to store this locally since pictures are not returned with other inferences. Should investigate where these images/metadata are stored, and possibly cache results
+                // TODO, curretly have to store this locally since pictures are not returned with other inferences. Should investigate where these images/metadata are stored, and possibly cache results
 
 
-                  // if (analysis_type == 'classification') {
-                  // result.classified.filter( inf => inf.name == '_negative_' )
-                  // }
-                  if (JSON.stringify(result['classified']).includes('_negative_')) {
-                    return
-                  }
-                  var date = (new Date().toJSON())
-                  var inference = {
-                    _id: result.imageMd5,
-                    analysis_type: analysis_type, //"image",
-                    canvas_url: canvas_url,
-                    created_date: date,
-                    thumbnail_path: '/uploads' + endpoint,
-                    status: result['result'],
-                    filename: "capture_" + (new Date().toJSON()), //filename,
-                    model_id: result['webAPIId'],
-                    heatmap: heatmap,
-                    percent_complete: 100,
-                    classified: result['classified'],
-                    url: this.$data.url,
-                    width: width,
-                    height: height
-                  }
-                  console.log("appending inference ")
-                  console.log(inference)
-                  this.$data.inferences.push(inference)
+                // if (analysis_type == 'classification') {
+                // result.classified.filter( inf => inf.name == '_negative_' )
+                // }
 
+                // skip if "_negative_" class, seems to be built in MVI
+                if (JSON.stringify(result['classified']).includes('_negative_')) {
+                  return
+                }
 
-                  var recBoundingBoxes = this.$data.recBoundingBoxes
-                  // /*
-                  // detect if object in ROI
-                  let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
-                  let maxX = Math.max(this.$data.recEnd['x'], this.$data.recStart['x'])
-                  let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
-                  let maxY = Math.max(this.$data.recEnd['y'], this.$data.recStart['y'])
-                  let recWidth = maxX - minX
-                  let recHeight = maxY - minY
+                var date = (new Date().toJSON())
 
-                  ctx.clearRect(0,0,canvas.offsetWidth, canvas.offsetHeight)
-                  ctx.strokeStyle = "green";
-                  ctx.beginPath();
-                  ctx.rect(minX, minY, recWidth, recHeight)
-                  ctx.stroke();
+                if (endpoint) {
+                  var image_url = this.$data.mviUrl + endpoint
+                  console.log("image_url")
+                  console.log(image_url)
+                } else {
+                  // in case of edge, not recommended...TODO, need to stash thumbnails somewhere
+                  var image_url = canvas_url
+                }
 
-                  var classesInRoi = []
-                  // process recognized classes
-                  if ( (inference["classified"].length > 0) && this.$data.recBoundingBoxes)  {
-                    var wRatio = canvas.offsetWidth / width
-                    var vRatio = canvas.offsetHeight / height
+                var inference = {
+                  _id: result.imageMd5,
+                  analysis_type: analysis_type, //"image",
+                  canvas_url: image_url, //canvas_url,
+                  created_date: date,
+                  thumbnail_path: '/uploads' + endpoint,
+                  status: result['result'],
+                  filename: "capture_" + (new Date().toJSON()), //filename,
+                  model_id: result['webAPIId'],
+                  heatmap: heatmap,
+                  percent_complete: 100,
+                  classified: result['classified'],
+                  url: this.$data.url,
+                  width: width,
+                  height: height
+                }
+                var recBoundingBoxes = this.$data.recBoundingBoxes
+                // /*
+                // detect if object in ROI
+                let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+                let maxX = Math.max(this.$data.recEnd['x'], this.$data.recStart['x'])
+                let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+                let maxY = Math.max(this.$data.recEnd['y'], this.$data.recStart['y'])
+                let recWidth = maxX - minX
+                let recHeight = maxY - minY
 
+                // ctx.clearRect(0,0,canvas.offsetWidth, canvas.offsetHeight)
+                // ctx.strokeStyle = "green";
+                // ctx.beginPath();
+                // ctx.rect(minX, minY, recWidth, recHeight)
+                // ctx.stroke();
 
-                    // draw ROI
+                var classesInRoi = []
+                // process recognized classes
 
-                    // lets gen a ratio based on the real width/height (offset)
-                    var results = []
-                    inference["classified"].map( (cls, idx) => {
-                      // get corrected coords for object
-                      var objectYMax = cls['ymax'] * vRatio
-                      var objectYMin = cls['ymin'] * vRatio
-                      var objectXMax = cls['xmax'] * wRatio
-                      var objectXMin = cls['xmin'] * wRatio
-                      var recBoxYMin = this.$data.recBoundingBoxes['ymin'] //* vRatio
-                      var recBoxYMax = this.$data.recBoundingBoxes['ymax'] //* vRatio
-                      var recBoxXMin = this.$data.recBoundingBoxes['xmin'] //* wRatio
-                      var recBoxXMax = this.$data.recBoundingBoxes['xmax'] //* wRatio
-                      var labelInRoi = (( recBoxYMin <= objectYMax && objectYMax <= recBoxYMax ) ||
-                                       ( recBoxYMin <= objectYMin && objectYMin <= recBoxYMax )) &&
-                                       (( recBoxXMin <= objectXMax && objectXMax <= recBoxXMax ) ||
-                                       ( recBoxXMin <= objectXMin && objectXMin <= recBoxXMax ))
-                      // if ( true) {
-                      if (labelInRoi) {
-                        classesInRoi.push(cls['label'])
-                      }
+                // var insideROI = false
+
+                // if objects have been detected
+                if ( (inference["classified"].length > 0) && this.$data.recBoundingBoxes)  {
+                  var wRatio = canvas.offsetWidth / width
+                  var vRatio = canvas.offsetHeight / height
+                  // draw ROI
+                  // lets gen a ratio based on the real width/height (offset)
+                  var results = []
+
+                  var before = performance.now();
+
+                  inference["classified"].map( (cls, idx) => {
+                    // get corrected coords for object
+                    var objectYMax = cls['ymax'] * vRatio
+                    var objectYMin = cls['ymin'] * vRatio
+                    var objectXMax = cls['xmax'] * wRatio
+                    var objectXMin = cls['xmin'] * wRatio
+                    var recBoxYMin = this.$data.recBoundingBoxes['ymin'] //* vRatio
+                    var recBoxYMax = this.$data.recBoundingBoxes['ymax'] //* vRatio
+                    var recBoxXMin = this.$data.recBoundingBoxes['xmin'] //* wRatio
+                    var recBoxXMax = this.$data.recBoundingBoxes['xmax'] //* wRatio
+                    var labelInRoi = (( recBoxYMin <= objectYMax && objectYMax <= recBoxYMax ) ||
+                                     ( recBoxYMin <= objectYMin && objectYMin <= recBoxYMax )) &&
+                                     (( recBoxXMin <= objectXMax && objectXMax <= recBoxXMax ) ||
+                                     ( recBoxXMin <= objectXMin && objectXMin <= recBoxXMax ))
+
+                    // if roi and label in roi, draw box
+                    if (labelInRoi) {
                       let recWidth = Math.abs(objectXMin - objectXMax)
                       let recHeight = Math.abs(objectYMin - objectYMax)
-                      this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight, objectXMin, objectYMin)
+                      classesInRoi.push(cls['label'])
+                      this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight, objectXMin, objectYMin, goodCtx, badCtx)
+                    } else if ( (! labelInRoi) && (Object.keys(this.$data.recBoundingBoxes).length == 0)) {
+                      let recWidth = Math.abs(objectXMin - objectXMax)
+                      let recHeight = Math.abs(objectYMin - objectYMax)
+                      this.drawRectStream(labelInRoi, width, cls, recWidth, recHeight, objectXMin, objectYMin, goodCtx, badCtx)
+                    }
 
-                      if (inference["classified"].length == (idx+1)) {
-                        console.log("processed all objects in this inference, checking for alert")
-                        // this.$data.alertConfigs.map()
-                        this.checkAlert(classesInRoi, date)
+                    if (inference["classified"].length == (idx+1)) {
+                      console.log("processed all objects in this inference, checking for alert")
+                      // this.$data.alertConfigs.map()
+                      this.checkAlert(classesInRoi, date)
+                      var after = performance.now();
+                      console.log(`processing inference took ${(after-before)/1000} seconds`)
+                      // only append inference if we have matching classes in ROI, or no ROI defined
+                      if ( (classesInRoi.length > 0) || ( Object.keys(this.$data.recBoundingBoxes).length == 0 )) {
+                        console.log("done, appending inference")
+                        // this.$data.allInferences.push(inference)
+                        this.$data.inferences.push(inference)
+                        console.log(inference)
                       }
+                    }
 
-                      // default classes, should be adjusted
-                      if (this.$data.selected_bad_labels.includes( cls['label']) && labelInRoi ) {
-                         var alert = {
-                           "type": "Bad Label in ROI",
-                           "classes": cls['label'],
-                           "priority": "High",
-                           "date": date
-                         }
-                         console.log(`adding alert ${alert['type']}`)
-                         // this.$data.alerts.push(alert)
-                       } /*else if (this.$data.selected_bad_labels.includes( cls['label']) && (!labelInRoi)) {
-                         var alert = {
-                           "type": "Bad Label outside of ROI",
-                           "classes": cls['label'],
-                           "priority": "High",
-                           "date": date
-                         }
-                         console.log(`adding alert ${alert['type']}`)
-                         this.$data.alerts.push(alert)
-                       } else if (this.$data.selected_good_labels.includes( cls['label']) && (labelInRoi)) {
-                         var alert = {
-                           "type": "Good Label in ROI",
-                           "classes": cls['label'],
-                           "priority": "Low",
-                           "date": date
-                         }
-                         console.log(`adding alert ${alert['type']}`)
-                         this.$data.alerts.push(alert)
-                       } else {
-                         console.log("no alerts")
-                       }*/
-                            // debugging
-                            // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
-                            // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
-                            // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
-                            // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMax, objectYMax)
-                         // }
-                         /*
-                         else if (this.$data.selected_good_labels.includes( cls['label'])) {
-                           console.log("good object found in ROI, drawing")
-                           // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
-                           // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
-                           let recWidth = Math.abs(objectXMin - objectXMax)
-                           let recHeight = Math.abs(objectYMin - objectYMax)
-                           console.log("recWidth recHeight")
-                           console.log(`${recWidth}, ${recHeight}`)
-                           console.log("objectXMin objectYMin")
-                           console.log(`${objectXMin} ${objectYMin}`)
-                           ctx.strokeStyle = "green";
-                           ctx.beginPath();
-                           ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
-                           ctx.stroke();
-                           ctx.font = "16px Arial";
-                           ctx.fillStyle = "#DC4929";
-                           ctx.fillText(cls['label'], objectXMin, objectYMin)
-                           // draw location
-                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
-                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
-                           // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
-                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
-                           console.log("done drawing")
-                         }
-                         else {
-                          console.log("object NOT found in ROI, drawing")
-                          // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
-                          // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
-                          let recWidth = Math.abs(objectXMin - objectXMax)
-                          let recHeight = Math.abs(objectYMin - objectYMax)
-                          console.log("recWidth recHeight")
-                          console.log(`${recWidth}, ${recHeight}`)
-                          console.log("objectXMin objectYMin")
-                          console.log(`${objectXMin} ${objectYMin}`)
-                          ctx.strokeStyle = "yellow";
-                          ctx.beginPath();
-                          ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
-                          ctx.stroke();
-                          ctx.font = "16px Arial";
-                          ctx.fillStyle = "#DC4929";
-                          ctx.fillText(cls['label'], objectXMin, objectYMin)
-                          // draw location
+                    // default classes, should be adjusted
+                    if (this.$data.selected_bad_labels.includes( cls['label']) && labelInRoi ) {
+                       var alert = {
+                         "type": "Bad Label in ROI",
+                         "classes": cls['label'],
+                         "priority": "High",
+                         "date": date
+                       }
+                       console.log(`adding alert ${alert['type']}`)
+                       // this.$data.alerts.push(alert)
+                     } /*else if (this.$data.selected_bad_labels.includes( cls['label']) && (!labelInRoi)) {
+                       var alert = {
+                         "type": "Bad Label outside of ROI",
+                         "classes": cls['label'],
+                         "priority": "High",
+                         "date": date
+                       }
+                       console.log(`adding alert ${alert['type']}`)
+                       this.$data.alerts.push(alert)
+                     } else if (this.$data.selected_good_labels.includes( cls['label']) && (labelInRoi)) {
+                       var alert = {
+                         "type": "Good Label in ROI",
+                         "classes": cls['label'],
+                         "priority": "Low",
+                         "date": date
+                       }
+                       console.log(`adding alert ${alert['type']}`)
+                       this.$data.alerts.push(alert)
+                     } else {
+                       console.log("no alerts")
+                     }*/
+                          // debugging
                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
                           // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
                           // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
-                          // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
-                          console.log("done drawing")
-                        }
-                          */
-                      })
-                  }
-                  // */
-
-                  // "classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}]
-
-
-                  // this.$data.inferences.unshift(inference)
-                  // localStorage.setItem('inference', JSON.stringify(inference))
-                  this.getCount()
-                  // this.genChartData()
-                  // object detection
-                  // {"webAPIId":"61539587-2c52-47d6-bfb7-a60d6d49bace","imageUrl":"http://vision-v120-prod-service:9080/vision-v120-prod-api/uploads/temp/61539587-2c52-47d6-bfb7-a60d6d49bace/ebd425bc-c675-4161-95e1-ca81bf685957.png","imageMd5":"8cb49157f32d2790dfc46b96abadbce7","classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}],"result":"success"}
-                  // "classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}]
-
-                  // classifier
-                  // {"webAPIId":"f1bdbfb5-7a55-402d-9cd4-3d7c16d1d8d4","imageUrl":"http://vision-v120-prod-service:9080/vision-v120-prod-api/uploads/temp/f1bdbfb5-7a55-402d-9cd4-3d7c16d1d8d4/d90d3ed3-8076-4cca-b2b9-b10ba331e9f3.png","imageMd5":"f9c7439db22cf5cea47d24453876cd14","classified":{"Pneumonia-Virus":"79.53754425048828"},"result":"success"}
-                  // "classified":{"Pneumonia-Virus":"79.53754425048828"}
+                          // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMax, objectYMax)
+                       // }
+                       /*
+                       else if (this.$data.selected_good_labels.includes( cls['label'])) {
+                         console.log("good object found in ROI, drawing")
+                         // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+                         // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+                         let recWidth = Math.abs(objectXMin - objectXMax)
+                         let recHeight = Math.abs(objectYMin - objectYMax)
+                         console.log("recWidth recHeight")
+                         console.log(`${recWidth}, ${recHeight}`)
+                         console.log("objectXMin objectYMin")
+                         console.log(`${objectXMin} ${objectYMin}`)
+                         ctx.strokeStyle = "green";
+                         ctx.beginPath();
+                         ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
+                         ctx.stroke();
+                         ctx.font = "16px Arial";
+                         ctx.fillStyle = "#DC4929";
+                         ctx.fillText(cls['label'], objectXMin, objectYMin)
+                         // draw location
+                         // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
+                         // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                         // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
+                         // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                         console.log("done drawing")
+                       }
+                       else {
+                        console.log("object NOT found in ROI, drawing")
+                        // let minX = Math.min(this.$data.recEnd['x'], this.$data.recStart['x'])
+                        // let minY = Math.min(this.$data.recEnd['y'], this.$data.recStart['y'])
+                        let recWidth = Math.abs(objectXMin - objectXMax)
+                        let recHeight = Math.abs(objectYMin - objectYMax)
+                        console.log("recWidth recHeight")
+                        console.log(`${recWidth}, ${recHeight}`)
+                        console.log("objectXMin objectYMin")
+                        console.log(`${objectXMin} ${objectYMin}`)
+                        ctx.strokeStyle = "yellow";
+                        ctx.beginPath();
+                        ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
+                        ctx.stroke();
+                        ctx.font = "16px Arial";
+                        ctx.fillStyle = "#DC4929";
+                        ctx.fillText(cls['label'], objectXMin, objectYMin)
+                        // draw location
+                        // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMin, objectYMin)
+                        // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                        // ctx.fillText(`objectXMax ${objectXMax.toFixed(2)} objectYMin ${objectYMin.toFixed(2)}`, objectXMax, objectYMin)
+                        // ctx.fillText(`objectXMin ${objectXMin.toFixed(2)} objectYMax ${objectYMax.toFixed(2)}`, objectXMin, objectYMax)
+                        console.log("done drawing")
+                      }
+                        */
+                    })
                 }
-              }).catch((err) => {
-                console.log("error parsing json")
-                console.log(err)
-              })
+                // */
+
+                // object detection
+                // {"webAPIId":"61539587-2c52-47d6-bfb7-a60d6d49bace","imageUrl":"http://vision-v120-prod-service:9080/vision-v120-prod-api/uploads/temp/61539587-2c52-47d6-bfb7-a60d6d49bace/ebd425bc-c675-4161-95e1-ca81bf685957.png","imageMd5":"8cb49157f32d2790dfc46b96abadbce7","classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}],"result":"success"}
+                // "classified":[{"confidence":0.9998242259025574,"ymax":153,"label":"helmet","xmax":236,"xmin":136,"ymin":8},{"confidence":0.7896438241004944,"ymax":492,"label":"safety_vest","xmax":314,"xmin":114,"ymin":143}]
+
+                // classifier
+                // {"webAPIId":"f1bdbfb5-7a55-402d-9cd4-3d7c16d1d8d4","imageUrl":"http://vision-v120-prod-service:9080/vision-v120-prod-api/uploads/temp/f1bdbfb5-7a55-402d-9cd4-3d7c16d1d8d4/d90d3ed3-8076-4cca-b2b9-b10ba331e9f3.png","imageMd5":"f9c7439db22cf5cea47d24453876cd14","classified":{"Pneumonia-Virus":"79.53754425048828"},"result":"success"}
+                // "classified":{"Pneumonia-Virus":"79.53754425048828"}
+              }
+            this.getCount()
             }).catch((err) => {
+              console.log("error parsing json")
               console.log(err)
             })
-          }
+          }).catch((err) => {
+            console.log(err)
+          })
+        }
           // if (f_idx == (this.$data.files.length - 1)) {
           //   this.$data.files = []
           //   this.$data.filenames = []
@@ -2521,7 +2637,7 @@ ymin: 182 -->
             })
           }
           console.log(`login options ${JSON.stringify(options)}`)
-          fetch(this.$data.url + "/api/tokens", options).then((res) => {
+          fetch(this.$data.mviUrl + "/api/tokens", options).then((res) => {
             console.log("token api request made")
             this.$modal.hide("login-modal")
             res.json().then((token) => {

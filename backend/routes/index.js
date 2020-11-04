@@ -267,7 +267,7 @@ router.post('/stream', function(req, res) {
         rstpStream = new Stream({
           name: 'name',
           streamUrl: endpoint,
-          wsPort: 9999,
+          wsPort: 6004,
           ffmpegOptions: { // options ffmpeg flags
             '-stats': '', // an option with no neccessary value uses a blank string
             '-r': 30 // options with required values specify the value after the key
