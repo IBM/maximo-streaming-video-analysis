@@ -30,7 +30,8 @@ import Router from 'vue-router'
 import "carbon-components/css/carbon-components.min.css";
 import CarbonComponentsVue from '@carbon/vue';
 // let carbonLibs = ["CvList", "CvModal", "CvSelect", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvAccordion", "CvAccordionItem", "CvButton", "CvTag", "CvStructuredList"]
-Vue.use(CarbonComponentsVue, ["CvDataTableSkeleton", "CvInteractiveTooltip", "CvCheckbox", "CvSlider", "CvNumberInput" ,"CvInlineLoading", "CvModal", "CvTag", "CvTile", "CvSelect", "CvMultiSelect","CvSelectOption", "CvSelectOptGroup", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvButton", "CvForm", "CvTextArea", "CvTextInput"]);
+Vue.use(CarbonComponentsVue, ["CvDataTableSkeleton", "CvInteractiveTooltip", "CvCheckbox", "CvSlider", "CvNumberInput" ,"CvInlineLoading", "CvModal", "CvTag", "CvTile", "CvSelect", "CvMultiSelect","CvSelectOption", "CvSelectOptGroup", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvButton", "CvForm", "CvTextArea", "CvTextInput","CvSearch"]);
+
 
 
 import { CarbonIconsVue } from '@carbon/icons-vue';
@@ -47,6 +48,7 @@ Vue.use(CarbonIconsVue, {
 import "./ibm-plex-font.css";
 import chartsVue from "@carbon/charts-vue";
 Vue.use(chartsVue);
+
 /*
 import {CvModal, CvList, CvSelect, CvFileUploader, CvDataTable, CvAccordion, CvAccordionItem, CvButton} from "@carbon/vue"
 , */

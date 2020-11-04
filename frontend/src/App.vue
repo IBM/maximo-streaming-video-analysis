@@ -5,7 +5,7 @@
   <div id="app">
     <div>
       <h1>
-        IBM Maximo Sample Video Analyzer
+        IBM Maximo Video Time Series Analyzer
       </h1>
     </div>
 
@@ -13,13 +13,24 @@
       <div >
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'login-modal', 'title': 'Login'})">Login</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'}) ; getModels()">Configure Model</CvButton>
-        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-configured-models'})">View Configured Models</CvButton> -->
+
+        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showCVModal('configure-all-modal'); getModels()">Configuration</CvButton>
+        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showCVModal('test_cv_modal')">Test</CvButton> -->
+
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton>
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="getModels()">Get Models</CvButton> -->
         <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-config'})">View Current Configuration</CvButton> -->
+
+        <div style="width:40%;margin: auto;margin-top:30px;text-align: center">
+        <CvSearch
+          v-model="search_query"
+          >
+        </CvSearch>
+        </div>
+
       </div>
     </div>
 
@@ -30,7 +41,7 @@
 
 
     <div class="bx--row">
-      <div class="bx--col-lg-4" >
+      <div class="bx--col-lg-6" >
         <cv-tile>
 
 
@@ -136,10 +147,10 @@ ymin: 182 -->
         <h5>{{selectedModel['name']}}</h5>
       </template> -->
 
-      <div class="bx--col-lg-3" >
+      <div class="bx--col-lg-4" >
         <!-- <div> -->
           <div style="border:1px solid rgb(128, 201, 123); height:650px">
-            <h5>Good Labels</h5>
+            <h5>Objects</h5>
             <p>
               found in {{Object.keys(inferencesByCategory['positive']).length}} images
             </p>
@@ -153,7 +164,7 @@ ymin: 182 -->
             </div>
 
             <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:530px">
-              <template v-for="inference in inferences">
+              <template v-for="inference in filteredInferences">
 
                 <template v-if="checkClasses(inference, selected_good_labels, 'positive').length > 0">
                   <cv-tile style="width:95%;height:120px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})" :kind="inferenceTileKind">
@@ -167,7 +178,7 @@ ymin: 182 -->
       </div>
       <!-- </div> -->
 
-      <div class="bx--col-lg-3" style="z-index:10;" >
+      <!-- <div class="bx--col-lg-3" style="z-index:10;" >
           <div style="border:1px solid rgb(237, 43, 33); z-index:10;height:650px">
               <h5>Bad Labels</h5>
               <p>
@@ -183,18 +194,15 @@ ymin: 182 -->
               </div>
               <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:530px">
                 <template v-for="inference in inferences">
-                  <!-- <template v-if="inference.classified.filter(value => selected_bad_labels.map(l => l.toLowerCase()).includes(value.label)).length > 0" > -->
                   <template v-if="checkClasses(inference, selected_bad_labels, 'negative').length > 0">
-                    <!-- <cv-tile style="height:200px; width:250px" kind="clickable" theme=""> -->
                     <cv-tile style="width:95%;height:120px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})"  :kind="inferenceTileKind">
                       <img style="width:98%;height:98%" :src=inference.canvas_url><img/>
-                      <!-- Detected Objects: {{inference.classified.map( i => `${i.confidence} ${i.label}`).join('_')}} -->
                     </cv-tile>
                   </template>
                 </template>
               </div>
           </div>
-      </div>
+      </div> -->
 
       <div class="bx--col-lg-2">
         <!-- <cv-tile> -->
@@ -209,8 +217,8 @@ ymin: 182 -->
               </template>
             </div> -->
             <h5 style="justify-content: center; align-items: center;">Results by Category</h5>
-            <div style="position:relative;left:-100px;z-index:0">
-              <Plotly @click=filterInferences :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly>
+            <div style="position:relative;z-index:0">
+              <Plotly @click=chartSearch :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly>
             </div>
 
             <!-- <ccv-donut-chart style="padding: 10px;" :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart> -->
@@ -240,10 +248,10 @@ ymin: 182 -->
     <div class="bx--col-md-8">
       <template v-if="inferences.length > 0">
         <div style=height:600px;overflow-y:auto;>
-          <cv-data-table title="Inferences" :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
+          <cv-data-table title="Inferences" sortable="" :zebra=true :columns="['Type', 'Date', 'Classes', 'Model']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
             <template v-if="use_htmlData" slot="data">
 
-                <cv-data-table-row v-for="(row, rowIndex) in inferences" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
+                <cv-data-table-row v-for="(row, rowIndex) in filteredInferences" :key="`${rowIndex}`" :value="`${rowIndex}`" @click.native="showModal({'name': 'show-inference', 'inference': inferences[rowIndex]})">
                    <cv-data-table-cell><input type="text" :value="row['analysis_type']" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
                    <cv-data-table-cell><input type="text" :value="parseDate(row['created_date'])" style="border: none; background: none; width: 100%;"/></cv-data-table-cell>
                    <cv-data-table-cell style="overflow-x:auto">
@@ -313,6 +321,8 @@ ymin: 182 -->
             <cv-button @click="hideModal({name: 'view-config'})">Close</cv-button>
           </div>
       </modal>
+
+
 
       <modal name="add-rule" height="auto" style="z-index: 3000;">
 
@@ -572,8 +582,92 @@ ymin: 182 -->
 
 
 
+<cv-modal name="test_cv_modal" ref="test_cv_modal">
+    <div class="bx--form-item">
+      <label class="bx--label">Text Input label</label>
+      <input id="text-input-3h9mddk235a" type="text" class="bx--text-input" placeholder="Optional placeholder text" data-modal-primary-focus>
+    </div>
+</cv-modal>
 
-    <modal name="configure-model-modal" height="430px" style="z-index: 3000;" >
+
+
+    <cv-modal name="configure-all-modal" ref="configure-all-modal" style="z-index: 3000;" >
+      <!-- <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="updateModelConfig"> -->
+        <h3>Configure Model</h3>
+        <div class="bx--form-item">
+          <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;" @change="setModel" v-model="selectedModelName" id="modelSelector" ref="modelSelector" theme="" label="Select Model" :hide-label=true >
+            <cv-select-option label="Select a Model" value="" :disabled=true>Select a Model</cv-select-option>
+            <template v-for="model in models">
+              <cv-select-option :label="model.name" :value="model.name">{{model.name}}</cv-select-option>
+            </template>
+          </cv-select>
+        </div>
+
+        <template v-if="selectedModel != {}">
+          <div style="margin-top:10px">
+            <cv-multi-select
+              v-model="selected_good_labels"
+              :label="selected_good_labels.join(',')"
+              :inline=false
+              helper-text="Tracked Objects"
+              selection-feedback="top-after-reopen"
+              :filterable=true
+              :auto-filter=true
+              :auto-highlight=true
+              :options="good_labels">
+            </cv-multi-select>
+          </div>
+
+          <cv-slider
+            label="Confidence Threshold (%)"
+            :min="0"
+            :max="100"
+            :value="70"
+            :step="1"
+            v-model="threshold"
+            min-label="0"
+            max-label="100"></cv-slider>
+        </template>
+
+        <h3>Configure Alert</h3>
+        <cv-multi-select
+          v-model="alertExistingLabels"
+          :label="alertExistingLabels.join(',')"
+          title="Existing Objects"
+          selection-feedback="top-after-reopen"
+          :inline=false
+          :filterable=true
+          :auto-filter=true
+          :auto-highlight=true
+          :options="good_labels">
+        </cv-multi-select>
+
+        <cv-select style="height:60px;margin-left:-50px; margin-top: -30px;"
+          v-model="alertPriority" ref="alertPrioritySelector" theme="" title="Bind Action" :hide-label=true :inline=false >
+          <cv-select-option label="Set Priority" value="" :disabled=true>Priority</cv-select-option>
+          <cv-select-option label="OK" value="OK">OK</cv-select-option>
+          <cv-select-option label="Not OK" value="Not OK">Not OK</cv-select-option>
+        </cv-select>
+
+        <!-- <cv-multi-select
+          v-model="alertMissingLabels"
+          :label="alertMissingLabels.join(',')"
+          :inline=false
+          title="Missing Objects"
+          selection-feedback="top-after-reopen"
+          :filterable=true
+          :auto-filter=true
+          :auto-highlight=true
+          :options="good_labels">
+        </cv-multi-select> -->
+
+        <cv-button  style="margin-top:20px;margin-bottom:20px;float:right" >Select</cv-button>
+      <!-- </cv-form> -->
+
+    </cv-modal>
+
+
+    <modal name="configure-model-modal" height="350px" style="z-index: 3000;" >
       <h2 align="center" style="margin-top:20px"> Configure Model </h2>
       <cv-form style="margin-left:20px;margin-right:20px" @submit.prevent="updateModelConfig">
           <div style="height:80px;position: relative">
@@ -591,7 +685,7 @@ ymin: 182 -->
                 v-model="selected_good_labels"
                 :label="selected_good_labels.join(',')"
                 :inline=false
-                helper-text="Good labels"
+                helper-text="Tracked Objects"
                 selection-feedback="top-after-reopen"
                 :filterable=true
                 :auto-filter=true
@@ -599,7 +693,7 @@ ymin: 182 -->
                 :options="good_labels">
               </cv-multi-select>
             </div>
-            <div style="margin-top:10px;margin-bottom:10px">
+            <!-- <div style="margin-top:10px;margin-bottom:10px">
               <cv-multi-select
                 v-model="selected_bad_labels"
                 :label="selected_bad_labels.join(',')"
@@ -611,7 +705,7 @@ ymin: 182 -->
                 :auto-highlight=true
                 :options="good_labels">
               </cv-multi-select>
-            </div>
+            </div> -->
             <cv-slider
               label="Confidence Threshold (%)"
               :min="0"
@@ -748,10 +842,21 @@ ymin: 182 -->
           console.log(`canvasElement.width ${canvasElement.width}` )
           console.log(`canvasElement.height ${canvasElement.height}` )
       }
+
+    },
+    computed: {
+      filteredInferences: function() {
+        if (this.$data.search_query) {
+          console.log("filtering")
+          var query = this.$data.search_query
+          return this.$data.inferences.filter( inference => JSON.stringify(inference).includes(query) )
+        } else {
+          return this.$data.inferences
+        }
+      }
     },
     data() {
       return {
-        allInferences: [],
         restMethod: "",
         actionPassword: "",
         actionUserName: "",
@@ -808,6 +913,8 @@ ymin: 182 -->
         counts: {},
         inferences: [],
         renderInferences: [],
+        // filteredInferences: [],
+        allInferences: [],
         inference_data: {},
         fields: [],
         selectedModelName: '',
@@ -1113,6 +1220,43 @@ ymin: 182 -->
       // this.getInferenceDetails();
     },
     methods: {
+      onFilter(val) {
+        this.filterValue = val;
+      },
+      showCVModal(name) {
+        this.$refs[name].method('show')()
+      },
+      chartSearch(ev) {
+        let label = ev.points[0].label
+        this.$data.search_query = label
+        console.log(`clicked chart, filtering to ${label}`)
+      },
+      onSort(sortBy) {
+        if (sortBy) {
+          this.internalData.sort((a, b) => {
+            const itemA = a[sortBy.index];
+            const itemB = b[sortBy.index];
+
+            if (sortBy.order === 'descending') {
+              if (sortBy.index === 2) {
+                // sort as number
+                return parseFloat(itemA) - parseFloat(itemB);
+              } else {
+                return itemB.localeCompare(itemA);
+              }
+            }
+            if (sortBy.order === 'ascending') {
+              if (sortBy.index === 2) {
+                // sort as number
+                return parseFloat(itemB) - parseFloat(itemA);
+              } else {
+                return itemA.localeCompare(itemB);
+              }
+            }
+            return 0;
+          });
+        }
+      },
       printTracker() {
         // var tracking = new this.$Tracking()
         // console.log("tracking")
@@ -1348,15 +1492,7 @@ ymin: 182 -->
       showTooltip(ev) {
         console.log(ev)
       },
-      filterInferences(ev) {
-        console.log("filtering inferences")
-        console.log(ev)
-        // let category = ev.event.originalTarget.__data__.label
-        let category = ev.points[0].label
-        console.log(category)
-
-
-        // this.$data.inferences = this.$data.allInferences
+      sortInferences(ev) {
 
       },
       printColors() {

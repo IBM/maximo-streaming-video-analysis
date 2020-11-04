@@ -4,3 +4,5 @@ backend/node_modules
 .env*
 frontend/semantic
 backend/videos
+edge/*deb
+edge/*rpm
