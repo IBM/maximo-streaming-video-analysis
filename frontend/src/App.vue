@@ -2,7 +2,7 @@
 <template>
 
 
-  <div id="app">
+  <div id="app" ui-background="#262626">
     <div>
       <h1>
         IBM Maximo Video Time Series Analyzer
@@ -10,7 +10,7 @@
     </div>
 
     <div id="menu" style="margin-top:40px; margin-bottom:40px">
-      <div >
+      <div>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'login-modal', 'title': 'Login'})">Login</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'}) ; getModels()">Configure Model</CvButton>
 
@@ -21,8 +21,6 @@
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton>
-        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="getModels()">Get Models</CvButton> -->
-        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'view-config'})">View Current Configuration</CvButton> -->
 
         <div style="width:40%;margin: auto;margin-top:30px;text-align: center">
         <CvSearch
@@ -30,7 +28,6 @@
           >
         </CvSearch>
         </div>
-
       </div>
     </div>
 
@@ -41,7 +38,7 @@
 
 
     <div class="bx--row">
-      <div class="bx--col-lg-6" >
+      <div class="bx--col-md-4" >
         <cv-tile>
 
 
@@ -120,9 +117,9 @@ ymin: 182 -->
 
         </div>
 
-        <div style="margin-bottom:10px">
+        <!-- <div style="margin-bottom:10px">
           <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="capture">Capture Frame And Analyze</cv-button>
-        </div>
+        </div> -->
         <div style="margin-bottom:10px">
           <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
           <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
@@ -132,23 +129,19 @@ ymin: 182 -->
         <div style="margin-bottom:10px">
           <cv-button style="width:50%" type="default" v-on:click="drawROI()">Draw ROI</cv-button>
         </div>
-            <!-- <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 5; " crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
-            <video muted loop controls @ended="restartStream()" style="width: 640px;height:480px;z-index: 0;position: absolute; left: 50%; transform: translate(-50%, 0); " crossorigin="anonymous" ref="remote_video" id="remote_video" width="640" height="480" autoplay></video>
-            <canvas style="width: 640px;height:480px;z-index: 2000;position: absolute; left: 50%; transform: translate(-50%, 0);" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas" width="640" height="480" ></canvas>
-            <canvas style="z-index: 2000;position: absolute ; visibility: hidden" crossorigin="anonymous" ref="canvas" id="canvas" width="640" height="480" ></canvas> -->
-
-          <!-- </div> -->
-        <!-- </template> -->
         </cv-tile>
       </div>
 
+      <div class="bx--col-md-4" >
+          <!-- <ccv-simple-bar-chart :data='timelineData' :options='timelineBarOptions'></ccv-simple-bar-chart> -->
+          <ccv-line-chart id="timelineChart" ref="timelineChart" :data='timelineData' :options='timelineOptions'></ccv-line-chart>
+      </div>
 
       <!-- <template v-if="Object.keys(selectedModel).length > 0">
         <h5>{{selectedModel['name']}}</h5>
       </template> -->
 
-      <div class="bx--col-lg-4" >
-        <!-- <div> -->
+      <!-- <div class="bx--col-lg-4" >
           <div style="border:1px solid rgb(128, 201, 123); height:650px">
             <h5>Objects</h5>
             <p>
@@ -169,67 +162,25 @@ ymin: 182 -->
                 <template v-if="checkClasses(inference, selected_good_labels, 'positive').length > 0">
                   <cv-tile style="width:95%;height:120px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})" :kind="inferenceTileKind">
                     <img style="width:98%;height:98%" :src=inference.canvas_url><img/>
-                    <!-- Detected Objects: {{inference.classified.map( i => `${i.confidence} ${i.label}`).join('_')}} -->
                   </cv-tile>
                 </template>
               </template>
             </div>
           </div>
       </div>
-      <!-- </div> -->
-
-      <!-- <div class="bx--col-lg-3" style="z-index:10;" >
-          <div style="border:1px solid rgb(237, 43, 33); z-index:10;height:650px">
-              <h5>Bad Labels</h5>
-              <p>
-                found in {{Object.keys(inferencesByCategory['negative']).length}} images
-              </p>
-
-              <div style="height:70px;overflow-y:auto;">
-                <template v-for="label in selected_bad_labels">
-                  <cv-tag
-                  :label="label"
-                  ></cv-tag>
-                </template>
-              </div>
-              <div style="display: grid; overflow-y:auto; grid-template-columns: auto auto;height:530px">
-                <template v-for="inference in inferences">
-                  <template v-if="checkClasses(inference, selected_bad_labels, 'negative').length > 0">
-                    <cv-tile style="width:95%;height:120px" v-on:click.native="showModal({'name': 'show-inference', 'inference': inference})"  :kind="inferenceTileKind">
-                      <img style="width:98%;height:98%" :src=inference.canvas_url><img/>
-                    </cv-tile>
-                  </template>
-                </template>
-              </div>
-          </div>
-      </div> -->
 
       <div class="bx--col-lg-2">
-        <!-- <cv-tile> -->
-          <!-- <div style="top: 15%;position: absolute;margin:0;vertical-align: middle;"> -->
-            <!-- <div style="height:200px">
-              <template v-for="label in Object.keys(legend)">
-                <div :style="'width:10px;height:10px;border: 3px solid;border-color: ' + legend[label]">
-                </div>
-                <p style="text-align:right">
-                  {{label}}
-                </p>
-              </template>
-            </div> -->
             <h5 style="justify-content: center; align-items: center;">Results by Category</h5>
             <div style="position:relative;z-index:0">
               <Plotly @click=chartSearch :data="plotlyData" :layout="plotlyConfig" :display-mode-bar="false"></Plotly>
             </div>
+      </div> -->
 
-            <!-- <ccv-donut-chart style="padding: 10px;" :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart> -->
-      </div>
+
     </div>
   </div>
 
-  <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
-    <!-- <div class="bx--col-md-12">
-      <ccv-donut-chart :key="chartRedraw" id="donut_chart" ref="donut_chart"  :data='chartData' :options='chartOptions'></ccv-donut-chart>
-    </div> -->
+  <!-- <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
     <template v-if="alerts.length > 0">
       <div class="bx--col-md-4" style=height:600px;overflow-y:auto;>
         <cv-data-table title="Alerts" :zebra=true :columns="['Type', 'Date', 'Classes', 'Priority']" :pagination="{ numberOfItems: Infinity, pageSizes: [5, 10, 15, 20, 25] }">
@@ -284,7 +235,7 @@ ymin: 182 -->
           ></cv-data-table-skeleton>
       </template>
     </div>
-  </div>
+  </div> -->
 
 </div>
     <div>
@@ -561,6 +512,12 @@ ymin: 182 -->
               type="password"
               placeholder="Password">
             </cv-text-input>
+            <cv-text-input
+              label="API Token"
+              v-model="apiToken"
+              type="password"
+              placeholder="API Token">
+            </cv-text-input>
             <cv-button style="margin-bottom:10px;margin-top:10px;float:right">Submit</cv-button>
           </cv-form>
       </modal>
@@ -807,7 +764,7 @@ ymin: 182 -->
                   console.log(`xmin ${o['xmin']}, ymax ${o['ymax']}, hRatio ${hRatio} vRatio ${vRatio}`)
                   console.log(`w ${w}, h ${h}, tl_x ${tl_x}, tl_y ${tl_y} ` )
                   ctx.beginPath()
-                  ctx.font = "30px Arial";
+                  ctx.font = "30px IBM Plex Sans";
                   ctx.fillText(o['label'], (o['xmin'] * hRatio) + 20, (o['ymin'] * vRatio) + 20)
                   ctx.rect( tl_x, tl_y, w, h )
                   ctx.stroke()
@@ -857,6 +814,242 @@ ymin: 182 -->
     },
     data() {
       return {
+        markType: "dot",
+        timelineData: [
+        {"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":7,"date":"10/5/2020 1:10:30 PM","group":"beltloader_empty"},{"value":1,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_disconnected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_connected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"cargo_open"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"aircraft"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"wheel_chocked"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_inuse"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_baggage"}],
+        timelineData: [],
+        timelineData1: [
+        		{
+        				"group": "Dataset 1",
+        				"date": "2019-01-01T08:00:00.000Z",
+        				"value": 1,
+        		},
+        		{
+        				"group": "Dataset 1",
+        				"date": "2019-01-05T08:00:00.000Z",
+        				"value": 1,
+        		},
+        		{
+        				"group": "Dataset 1",
+        				"date": "2019-01-08T08:00:00.000Z",
+        				"value": null,
+        		},
+        		{
+        				"group": "Dataset 1",
+        				"date": "2019-01-13T08:00:00.000Z",
+        				"value": 1,
+        		},
+        		{
+        				"group": "Dataset 1",
+        				"date": "2019-01-17T08:00:00.000Z",
+        				"value": 1,
+        		},
+        		{
+        				"group": "Dataset 2",
+        				"date": "2019-01-02T08:00:00.000Z",
+        				"value": 2
+        		},
+        		{
+        				"group": "Dataset 2",
+        				"date": "2019-01-06T08:00:00.000Z",
+        				"value": 2
+        		},
+        		{
+        				"group": "Dataset 2",
+        				"date": "2019-01-08T08:00:00.000Z",
+        				"value": 2
+        		},
+        		{
+        				"group": "Dataset 2",
+        				"date": "2019-01-15T08:00:00.000Z",
+        				"value": 2
+        		},
+        		{
+        				"group": "Dataset 2",
+        				"date": "2019-01-19T08:00:00.000Z",
+        				"value": 2
+        		},
+        		{
+        				"group": "Dataset 3",
+        				"date": "2019-01-01T08:00:00.000Z",
+        				"value": 3
+        		},
+        		{
+        				"group": "Dataset 3",
+        				"date": "2019-01-05T08:00:00.000Z",
+        				"value": null
+        		},
+        		{
+        				"group": "Dataset 3",
+        				"date": "2019-01-08T08:00:00.000Z",
+        				"value": 3
+        		},
+        		{
+        				"group": "Dataset 3",
+        				"date": "2019-01-13T08:00:00.000Z",
+        				"value": 3
+        		},
+        		{
+        				"group": "Dataset 3",
+        				"date": "2019-01-17T08:00:00.000Z",
+        				"value": 3
+        		},
+        		{
+        				"group": "Dataset 4",
+        				"date": "2019-01-02T08:00:00.000Z",
+        				"value": 4
+        		},
+        		{
+        				"group": "Dataset 4",
+        				"date": "2019-01-06T08:00:00.000Z",
+        				"value": 4
+        		},
+        		{
+        				"group": "Dataset 4",
+        				"date": "2019-01-08T08:00:00.000Z",
+        				"value": 4
+        		},
+        		{
+        				"group": "Dataset 4",
+        				"date": "2019-01-15T08:00:00.000Z",
+        				"value": 4
+        		},
+        		{
+        				"group": "Dataset 4",
+        				"date": "2019-01-19T08:00:00.000Z",
+        				"value": null
+        		}
+        ],
+  			timelineOptions: {
+        		"title": "Step (time series)",
+            // "color": {},
+        		"axes": {
+        				"bottom": {
+        						"title": "Time",
+        						"mapsTo": "date",
+        						"scaleType": "time"
+        				},
+        				"left": {
+                    "title": "Object",
+        						"mapsTo": "value", //"value",
+        						// "title": "Conversion rate",
+        						"scaleType": "linear",
+                    // "scaleType": "labels",
+                    // "domain": ["employee", "jetbridge_disconnected", "jetbridge_connected", "cargo_open", "wheel_chocked", "aircraft"],
+                    "ticks": {
+                      formatter: (a, b) => {
+                        console.log(`a ${a} b ${b}`)
+                        let labels = this.$data.selected_good_labels
+                        let labelIdx = b
+                        return labels[labelIdx]
+                      }
+                    }
+
+                    // "scaleType": "ordinal"
+        				// },
+              }
+        		},
+
+            "experimental": true,
+            "zoomBar": {
+              "top": {
+                "enabled": false,
+                "type": "slider_view",
+              }
+            },
+        		"height": "600px",
+            // "getFillColors": () => {
+            // },
+            "tooltip": {
+             "customHTML": (data, defaultHTML) =>  {
+               // console.log(defaultHTML)
+               // let i = new Image( )
+               // i.src = "https://image.shutterstock.com/image-photo/bright-spring-view-cameo-island-260nw-1048185397.jpg"
+               let imageUrl = data[0].imageUrl
+               // i.src = data.imageUrl
+               // let inference = this.$data.inferences(data[0]['inferenceIdx'])
+               // console.log("tooltip inference")
+               // console.log(inference)
+               return `<div><img src=${imageUrl}></img></div>`
+               // <ul class='multi-tooltip'><li> <div class="datapoint-tooltip "> <p class="label">Time</p> <p class="value">Oct 5, 2020</p> </div> </li><li> <div class="datapoint-tooltip "> <p class="label">y-value</p> <p class="value">7</p> </div> </li><li> <div class="datapoint-tooltip "> <a class="tooltip-color tooltip-14-1-2"></a> <p class="label">Group</p> <p class="value">beltloader_empty</p> </div> </li></ul>
+               // "return html string"
+             }
+            }
+          },
+          timelineBarOptions: {
+            "title": "Simple horizontal bar (centered legend)",
+            "axes": {
+              "left": {
+                "mapsTo": "group",
+                "scaleType": "labels"
+              },
+              "bottom": {
+                "mapsTo": "value"
+              }
+            },
+            "legend": {
+              "alignment": "center"
+            },
+            "height": "400px"
+          },
+          timelineBarOptions1: {
+          		"title": "Step (time series)",
+          		"axes": {
+          				"bottom": {
+          						"title": "Time",
+          						"mapsTo": "timestamp",
+          						"scaleType": "linear",
+                      "ticks": {
+                        formatter: (a, b) => {
+                          console.log(`a ${a} b ${b}`)
+                          // let labels = this.$data.selected_good_labels
+                          // let labelIdx = b
+                          console.log(a)
+                          return a
+                          // return labels[labelIdx]
+                        }
+                      }
+          				},
+          				"left": {
+                      "title": "Object",
+          						"mapsTo": "value", //"value",
+          						// "title": "Conversion rate",
+          						"scaleType": "linear",
+                      // "scaleType": "labels",
+                      // "domain": ["employee", "jetbridge_disconnected", "jetbridge_connected", "cargo_open", "wheel_chocked", "aircraft"],
+                      "ticks": {
+                        formatter: (a, b) => {
+                          console.log(`a ${a} b ${b}`)
+                          let labels = this.$data.selected_good_labels
+                          let labelIdx = b
+                          return labels[labelIdx]
+                        }
+                      }
+
+                      // "scaleType": "ordinal"
+          				// },
+                }
+          		},
+          		// "curve": "curveStepAfter",
+          		"height": "400px",
+              "tooltip": {
+               "customHTML": (data, defaultHTML) =>  {
+                 // console.log(defaultHTML)
+                 // let i = new Image( )
+                 // i.src = "https://image.shutterstock.com/image-photo/bright-spring-view-cameo-island-260nw-1048185397.jpg"
+                 let imageUrl = data[0].imageUrl
+                 // i.src = data.imageUrl
+                 // let inference = this.$data.inferences(data[0]['inferenceIdx'])
+                 // console.log("tooltip inference")
+                 // console.log(inference)
+                 return `<div><img src=${imageUrl}></img></div>`
+                 // <ul class='multi-tooltip'><li> <div class="datapoint-tooltip "> <p class="label">Time</p> <p class="value">Oct 5, 2020</p> </div> </li><li> <div class="datapoint-tooltip "> <p class="label">y-value</p> <p class="value">7</p> </div> </li><li> <div class="datapoint-tooltip "> <a class="tooltip-color tooltip-14-1-2"></a> <p class="label">Group</p> <p class="value">beltloader_empty</p> </div> </li></ul>
+                 // "return html string"
+               }
+              }
+            },
+
+        apiToken: "",
         restMethod: "",
         actionPassword: "",
         actionUserName: "",
@@ -1220,6 +1413,80 @@ ymin: 182 -->
       // this.getInferenceDetails();
     },
     methods: {
+
+      parseTimeline(){
+        var labelsToIdx = {}
+        // {
+        //     "group": "Dataset 1",
+        //     "date": "2019-01-01T08:00:00.000Z",
+        //     "value": 1,
+        // },
+        var parseDate = this.parseDate
+        var numInferences = this.$data.inferences.length
+        var nodes = []
+        var that = this
+        var labels = this.$data.selected_good_labels
+        // this.$data.timelineOptions.axes.left.domain = labels
+        // create an object with selected labels, key is a label, value is false
+        var observedLabels = Object.fromEntries(labels.map( label => [label, false] ))
+        console.log(`observedLabels`)
+        console.log(observedLabels)
+        let timelineData = this.$data.inferences.map((inference, iIdx) => {
+          var date = inference.created_date
+          console.log(`date ${date}`)
+          var observedLabelsLocal = Object.assign({}, observedLabels)
+          // add object for each label in inference
+          console.log("graphing class indexes")
+          console.log(labels)
+          inference.classified.map( (cls, clsIdx)  => {
+            let idx = labels.findIndex(l => l === cls.label)
+            if (idx < 0 ) {
+              console.log("skipping, class not selected")
+            } else {
+              console.log(`cls.label ${cls.label} idx ${idx}`)
+              observedLabelsLocal[cls.label] = true
+              let line = {
+                value: idx,
+                date: date,
+                timestamp: inference['timestamp'],
+                group: cls.label,
+                imageUrl: inference['canvas_url'],
+                key: cls.label
+              }
+              console.log(line)
+              nodes.push(line)
+            }
+            let processedClassesDone = (clsIdx == (inference.classified.length - 1))
+            if (processedClassesDone) {
+              Object.keys(observedLabelsLocal).map( (label) => {
+                  let found = observedLabelsLocal[label]
+                  if (! found) {
+                    console.log(`selected label ${label} not in inference`)
+                    let line = {
+                      value: null,
+                      date: date,
+                      timestamp: inference['timestamp'],
+                      group: label,
+                      key: label
+                    }
+                    // nodes.push(line)
+                  }
+              } )
+            }
+            if (processedClassesDone && (iIdx == (numInferences - 1))) {
+              console.log("nodes")
+              console.log(nodes)
+              console.log(that.$data.timelineOptions)
+              that.$data.timelineData = nodes
+              // that.$data.timelineData.concat(nodes)
+              // return nodes
+            }
+            // return line
+          })
+          // }
+        })
+        console.log(timelineData)
+      },
       onFilter(val) {
         this.filterValue = val;
       },
@@ -1378,12 +1645,10 @@ ymin: 182 -->
           ctx.arc(mouseX, mouseY, 3, 0, 2 * Math.PI);
           ctx.fillStyle = "white";
           ctx.fill();
-          ctx.font = '15px Verdana';
+          ctx.font = '20px IBM Plex Sans';
           ctx.fillText(`Click to begin drawing ROI`, mouseX + 10, mouseY + 5)
           ctx.stroke();
-
         }
-
       },
 
       drawROI() {
@@ -1525,7 +1790,6 @@ ymin: 182 -->
       parseDate(date) {
         var parsedDate = Date.parse(d)
         return `${parsedDate.getYear()}/${parsedDate.getMonth()}/${parsedDate.getDay()} ${parsedDate.getHours()}:${parsedDate.getMinutes()}:${parsedDate.getSeconds()}`
-
       },
       mergeImagesToVideo(stillImages, formData) {
         // this.$data.stillImages
@@ -1908,9 +2172,20 @@ ymin: 182 -->
         // var good_labels_populated = false
         // var bad_labels_populated = false
         // selected_good_labels.map( (label) =>  {return { label: `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)` }})
+
+        // generate random colors
         if (this.$data.selected_good_labels) {
+          var timelineColors = {}
           this.$data.selected_good_labels.map( (label, idx) => {
-            // colors[label] = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
+            let randColor = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, ${Math.floor((Math.random() * 200) + 1) + 55}, ${Math.floor((Math.random() * 200) + 1) + 55})`
+            timelineColors[label] = randColor
+            if ((this.$data.selected_good_labels.length - 1) ==  idx ) {
+              console.log("setting timeline colors")
+              console.log(timelineColors)
+              // this.$data.timelineOptions.color.scale = {"employee": "blue", "aircraft": "yellow", "jetbridge_disconnected": "blue", "jetbridge_connected": "red", "cargo_open": "blue", "wheel_chocked": "blue", "beltloader_inuse": "blue", "beltloader_empty": "red", "beltloader_baggage": "red"}
+              // this.$data.timelineOptions.color.scale =  timelineColors
+            }
+            // green color
             let color = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
             this.$data.chartOptions.color.scale[label] = color
             console.log(`updating good label ${idx} ${label}`)
@@ -2409,24 +2684,34 @@ ymin: 182 -->
            }
 
            if (lineWidth && strokeStyle) {
+             ctx.beginPath();
              ctx.lineWidth = lineWidth
              ctx.strokeStyle = strokeStyle
              console.log(`drawing rectangle around object ${ctx.strokeStyle} ${ctx.lineWidth} ${cls['label']}`)
              console.log(`location ${objectXMin}, ${objectYMin}, ${recWidth}, ${recHeight}`)
-             ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
-             ctx.stroke();
-             ctx.font = "16px Arial";
-             ctx.fillStyle = strokeStyle;
-             ctx.fillText(cls['label'], objectXMin, objectYMin)
+             if (this.$data.markType == "rect") {
+               ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
+             } else {
+               // ctx.fillStyle = "green";
+               // let color = this.$data.timelineOptions.color.scale[cls['label']]
+               let color = "green"
+               ctx.fillStyle = color
+               ctx.strokeStyle = color
+               ctx.arc(objectXMin, objectYMin, 3, 0, 2 * Math.PI);
+               ctx.stroke();
+               ctx.fill();
+               ctx.font = "15px IBM Plex Sans";
+               ctx.fillText(cls['label'], objectXMin, objectYMin)
 
+             }
              // resolve()
            }
-        // })
       },
     submitInference(image, canvas_url, width=null, height=null) {
       console.log(`width ${width} height ${height}`)
       // post to powerai when user clicks "upload"
-
+      console.log("this.$refs.timelineChart")
+      console.log(this.$refs.timelineChart)
       let model = this.$data.selectedModel
       console.log(`image type ${typeof image}`)
       console.log(`submitting inference to model ${model['name']}`)
@@ -2537,7 +2822,8 @@ ymin: 182 -->
                   return
                 }
 
-                var date = (new Date().toJSON())
+                var d = new Date()
+                var date = d.toJSON()
 
                 if (endpoint) {
                   var image_url = this.$data.mviUrl + endpoint
@@ -2553,6 +2839,7 @@ ymin: 182 -->
                   analysis_type: analysis_type, //"image",
                   canvas_url: image_url, //canvas_url,
                   created_date: date,
+                  timestamp: d,
                   thumbnail_path: '/uploads' + endpoint,
                   status: result['result'],
                   filename: "capture_" + (new Date().toJSON()), //filename,
@@ -2626,6 +2913,7 @@ ymin: 182 -->
                       console.log("processed all objects in this inference, checking for alert")
                       // this.$data.alertConfigs.map()
                       this.checkAlert(classesInRoi, date)
+                      this.parseTimeline()
                       var after = performance.now();
                       console.log(`processing inference took ${(after-before)/1000} seconds`)
                       // only append inference if we have matching classes in ROI, or no ROI defined
@@ -2757,6 +3045,14 @@ ymin: 182 -->
         if (this.$data.edge) {
           this.$data.token = null
           this.hideModal({'name': 'login-modal'})
+          this.getModels()
+          return
+        } else if (this.$data.apiToken) {
+          console.log(`setting provided API token`)
+          this.$data.token = this.$data.apiToken
+          this.hideModal({'name': 'login-modal'})
+          localStorage.setItem('token', this.$data.apiToken)
+          this.getModels()
           return
         } else {
           console.log(`requesting token from ${this.$data.mviUrl}/api/tokens`)

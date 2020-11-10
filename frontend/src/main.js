@@ -46,6 +46,7 @@ Vue.use(CarbonIconsVue, {
 
 // <CalendarSettings32 />
 import "./ibm-plex-font.css";
+import "@carbon/charts/styles.css";
 import chartsVue from "@carbon/charts-vue";
 Vue.use(chartsVue);
 
