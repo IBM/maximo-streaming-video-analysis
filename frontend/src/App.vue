@@ -5,8 +5,11 @@
   <div id="app" ui-background="#262626">
     <div>
       <h1>
-        IBM Maximo Video Time Series Analyzer
+        IBM Maximo Visual Inspection
       </h1>
+      <h2>
+        Time Series Analyzer
+      </h2>
     </div>
 
     <div id="menu" style="margin-top:40px; margin-bottom:40px">
@@ -19,15 +22,15 @@
 
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
         <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton>
+        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
+        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton> -->
 
-        <div style="width:40%;margin: auto;margin-top:30px;text-align: center">
+        <!-- <div style="width:40%;margin: auto;margin-top:30px;text-align: center">
         <CvSearch
           v-model="search_query"
           >
         </CvSearch>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -38,7 +41,7 @@
 
 
     <div class="bx--row">
-      <div class="bx--col-md-4" >
+      <div class="bx--col" >
         <cv-tile>
 
 
@@ -120,19 +123,10 @@ ymin: 182 -->
         <!-- <div style="margin-bottom:10px">
           <cv-button style="width:50%;margin-bottom:10px" type="default" v-on:click="capture">Capture Frame And Analyze</cv-button>
         </div> -->
-        <div style="margin-bottom:10px">
-          <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
-          <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
-          <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
-        </div>
-
-        <div style="margin-bottom:10px">
-          <cv-button style="width:50%" type="default" v-on:click="drawROI()">Draw ROI</cv-button>
-        </div>
         </cv-tile>
       </div>
 
-      <div class="bx--col-md-4" >
+      <div class="bx--col" >
           <!-- <ccv-simple-bar-chart :data='timelineData' :options='timelineBarOptions'></ccv-simple-bar-chart> -->
           <ccv-line-chart id="timelineChart" ref="timelineChart" :data='timelineData' :options='timelineOptions'></ccv-line-chart>
       </div>
@@ -177,6 +171,19 @@ ymin: 182 -->
       </div> -->
 
 
+    </div>
+  </div>
+
+  <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
+
+    <div style="margin-bottom:10px">
+      <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
+      <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
+      <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
+    </div>
+
+    <div style="margin-bottom:10px">
+      <cv-button  type="default" v-on:click="drawROI()">Draw ROI</cv-button>
     </div>
   </div>
 
@@ -502,18 +509,18 @@ ymin: 182 -->
               v-model="mviUrl">
             </cv-text-input>
             <cv-text-input
-              label="Username"
+              label="Username (v1.3.0 and older)"
               v-model="username"
               placeholder="Username">
             </cv-text-input>
             <cv-text-input
-              label="Password"
+              label="Password (v1.3.0 and older)"
               v-model="password"
               type="password"
               placeholder="Password">
             </cv-text-input>
             <cv-text-input
-              label="API Token"
+              label="API Token (v8.0.0+)"
               v-model="apiToken"
               type="password"
               placeholder="API Token">
@@ -815,10 +822,10 @@ ymin: 182 -->
     data() {
       return {
         markType: "dot",
+        // timelineData: [
+        // {"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":7,"date":"10/5/2020 1:10:30 PM","group":"beltloader_empty"},{"value":1,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_disconnected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_connected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"cargo_open"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"aircraft"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"wheel_chocked"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_inuse"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_baggage"}],
+        // timelineData: [],
         timelineData: [
-        {"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":7,"date":"10/5/2020 1:10:30 PM","group":"beltloader_empty"},{"value":1,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_disconnected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_connected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"cargo_open"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"aircraft"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"wheel_chocked"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_inuse"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_baggage"}],
-        timelineData: [],
-        timelineData1: [
         		{
         				"group": "Dataset 1",
         				"date": "2019-01-01T08:00:00.000Z",
@@ -921,13 +928,27 @@ ymin: 182 -->
         		}
         ],
   			timelineOptions: {
-        		"title": "Step (time series)",
+        		"title": "Detected Objects",
             // "color": {},
+            "timeScale": {
+              "timeIntervalFormats": {
+                "minute": {
+                  "primary": "MMM d, HH:mm",
+          				"secondary": "HH:mm"
+                }
+              }
+            },
+            "color": {"scale": {}},
         		"axes": {
         				"bottom": {
         						"title": "Time",
         						"mapsTo": "date",
-        						"scaleType": "time"
+        						"scaleType": "time",
+                    "ticks": {
+                      number: 10,
+                      max: 10,
+                      min: 10
+                    }
         				},
         				"left": {
                     "title": "Object",
@@ -938,7 +959,6 @@ ymin: 182 -->
                     // "domain": ["employee", "jetbridge_disconnected", "jetbridge_connected", "cargo_open", "wheel_chocked", "aircraft"],
                     "ticks": {
                       formatter: (a, b) => {
-                        console.log(`a ${a} b ${b}`)
                         let labels = this.$data.selected_good_labels
                         let labelIdx = b
                         return labels[labelIdx]
@@ -955,22 +975,26 @@ ymin: 182 -->
               "top": {
                 "enabled": false,
                 "type": "slider_view",
+                "initialZoomDomain": [
+                  new Date(Date.now()).toISOString(),
+                  new Date(Date.now() + 60000).toISOString()
+                  // "2020-12-11T07:59:25.000Z",
+                  // "2020-12-11T08:00:25.000Z"
+                ]
+
               }
             },
         		"height": "600px",
-            // "getFillColors": () => {
-            // },
+            "getStrokeColor": (field) => {
+              return this.$data.timelineOptions.color.scale[field];
+            },
+            "getFillColor": (field) => {
+              return this.$data.timelineOptions.color.scale[field];
+            },
             "tooltip": {
              "customHTML": (data, defaultHTML) =>  {
-               // console.log(defaultHTML)
-               // let i = new Image( )
-               // i.src = "https://image.shutterstock.com/image-photo/bright-spring-view-cameo-island-260nw-1048185397.jpg"
                let imageUrl = data[0].imageUrl
-               // i.src = data.imageUrl
-               // let inference = this.$data.inferences(data[0]['inferenceIdx'])
-               // console.log("tooltip inference")
-               // console.log(inference)
-               return `<div><img src=${imageUrl}></img></div>`
+               return `<div style="height:200px;width:300px"><img  src=${imageUrl}></img></div>`
                // <ul class='multi-tooltip'><li> <div class="datapoint-tooltip "> <p class="label">Time</p> <p class="value">Oct 5, 2020</p> </div> </li><li> <div class="datapoint-tooltip "> <p class="label">y-value</p> <p class="value">7</p> </div> </li><li> <div class="datapoint-tooltip "> <a class="tooltip-color tooltip-14-1-2"></a> <p class="label">Group</p> <p class="value">beltloader_empty</p> </div> </li></ul>
                // "return html string"
              }
@@ -1337,6 +1361,8 @@ ymin: 182 -->
       console.log(`${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/scripts/tracking-min.js`)
     },
     mounted() {
+
+      // this.$data.modelConfigs = JSON.parse(localStorage.getItem('modelConfigs'))
       this.video = this.$refs.video;
       // this.$refs.video.addEventListener('ended', this.restartStream())
       // this.$refs.remote_video.addEventListener('ended', this.restartStream())
@@ -1433,17 +1459,16 @@ ymin: 182 -->
         console.log(observedLabels)
         let timelineData = this.$data.inferences.map((inference, iIdx) => {
           var date = inference.created_date
-          console.log(`date ${date}`)
           var observedLabelsLocal = Object.assign({}, observedLabels)
           // add object for each label in inference
-          console.log("graphing class indexes")
-          console.log(labels)
+          // console.log("graphing class indexes")
+          // console.log(labels)
           inference.classified.map( (cls, clsIdx)  => {
             let idx = labels.findIndex(l => l === cls.label)
             if (idx < 0 ) {
-              console.log("skipping, class not selected")
+              // console.log("skipping, class not selected")
             } else {
-              console.log(`cls.label ${cls.label} idx ${idx}`)
+              // console.log(`cls.label ${cls.label} idx ${idx}`)
               observedLabelsLocal[cls.label] = true
               let line = {
                 value: idx,
@@ -1453,7 +1478,6 @@ ymin: 182 -->
                 imageUrl: inference['canvas_url'],
                 key: cls.label
               }
-              console.log(line)
               nodes.push(line)
             }
             let processedClassesDone = (clsIdx == (inference.classified.length - 1))
@@ -1461,7 +1485,7 @@ ymin: 182 -->
               Object.keys(observedLabelsLocal).map( (label) => {
                   let found = observedLabelsLocal[label]
                   if (! found) {
-                    console.log(`selected label ${label} not in inference`)
+                    // console.log(`selected label ${label} not in inference`)
                     let line = {
                       value: null,
                       date: date,
@@ -1474,10 +1498,12 @@ ymin: 182 -->
               } )
             }
             if (processedClassesDone && (iIdx == (numInferences - 1))) {
+              // console.log("nodes")
+              // console.log(nodes)
+              // console.log(that.$data.timelineOptions)
+              that.$data.timelineData = nodes
               console.log("nodes")
               console.log(nodes)
-              console.log(that.$data.timelineOptions)
-              that.$data.timelineData = nodes
               // that.$data.timelineData.concat(nodes)
               // return nodes
             }
@@ -1485,7 +1511,6 @@ ymin: 182 -->
           })
           // }
         })
-        console.log(timelineData)
       },
       onFilter(val) {
         this.filterValue = val;
@@ -1546,7 +1571,7 @@ ymin: 182 -->
       },
       checkAlert(classes, date) {
         // TODO, what if we have multiple workers? Some may have cases some may not
-        console.log(`classes ${classes} found in inference`)
+        // console.log(`classes ${classes} found in inference`)
         // var classes = ['worker','vest','gloves']
         // var classes = ['worker','vest','gloves', "helmet"]
         // var existingLabels = ['worker']
@@ -1645,7 +1670,7 @@ ymin: 182 -->
           ctx.arc(mouseX, mouseY, 3, 0, 2 * Math.PI);
           ctx.fillStyle = "white";
           ctx.fill();
-          ctx.font = '20px IBM Plex Sans';
+          ctx.font = '18px IBM Plex Sans';
           ctx.fillText(`Click to begin drawing ROI`, mouseX + 10, mouseY + 5)
           ctx.stroke();
         }
@@ -2176,24 +2201,26 @@ ymin: 182 -->
         // generate random colors
         if (this.$data.selected_good_labels) {
           var timelineColors = {}
+          this.$data.timelineOptions.axes.left.domain = this.$data.selected_good_labels
           this.$data.selected_good_labels.map( (label, idx) => {
-            let randColor = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, ${Math.floor((Math.random() * 200) + 1) + 55}, ${Math.floor((Math.random() * 200) + 1) + 55})`
-            timelineColors[label] = randColor
+            // let randColor = `rgb(${Math.floor((Math.random() * 200) + 1) + 55}, ${Math.floor((Math.random() * 200) + 1) + 55}, ${Math.floor((Math.random() * 200) + 1) + 55})`
+            let randColor = Math.floor(Math.random()*16777215).toString(16);
+            timelineColors[label] = `#${randColor}`
+            this.$data.timelineOptions.color.scale[label] = `#${randColor}`
             if ((this.$data.selected_good_labels.length - 1) ==  idx ) {
-              console.log("setting timeline colors")
-              console.log(timelineColors)
+              console.log("timeline colors set, options")
               // this.$data.timelineOptions.color.scale = {"employee": "blue", "aircraft": "yellow", "jetbridge_disconnected": "blue", "jetbridge_connected": "red", "cargo_open": "blue", "wheel_chocked": "blue", "beltloader_inuse": "blue", "beltloader_empty": "red", "beltloader_baggage": "red"}
               // this.$data.timelineOptions.color.scale =  timelineColors
             }
             // green color
             let color = `rgb(0, ${Math.floor((Math.random() * 200) + 1) + 55},0)`
-            this.$data.chartOptions.color.scale[label] = color
+
             console.log(`updating good label ${idx} ${label}`)
             this.$data.legend[label] = color
             if (idx == (this.$data.selected_good_labels.length - 1) ) {
               // this.$refs.donut_chart.forceUpdate()
-              console.log("good labels colors added")
-              console.log(this.$data.chartOptions.color.scale)
+              // console.log("scale set")
+              // console.log(this.$data.chartOptions.color.scale)
               // this.$data.chartRedraw += 1
               // good_labels_populated = true
             }
@@ -2211,7 +2238,6 @@ ymin: 182 -->
               // this.$data.chartRedraw += 1
               // this.$refs.donut_chart.forceUpdate()
               console.log("bad labels colors added")
-              console.log(this.$data.chartOptions.color.scale)
               // bad_labels_populated = true
             }
             console.log(this.$refs.donut_chart)
@@ -2611,44 +2637,6 @@ ymin: 182 -->
         })
         return `${date} ${time}`
       },
-      /*
-      getModels() {
-        //TODO, check for model classes
-        if ( ! this.$data.url) {
-          console.log("url not set yet")
-          return
-        }
-        var options = {
-          method: "GET",
-          headers: {
-            "X-Auth-Token": this.$data.token,
-          }
-        }
-        if (this.$data.edge) {
-          var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget` + "/model-info"
-
-        } else {
-          var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget` + "/api/trained-models"
-        }
-        // var url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/proxyget/api/trained-models`
-        // proxy needed for cors
-        fetch(url, options).then((res) => {
-          console.log("models received")
-          console.log("res")
-          console.log(res)
-          res.json().then((models) => {
-            // if ( models != {} ) {
-            if (this.$data.edge) {
-              this.$data.models = [models]
-              this.$data.allmodels = [models]
-            } else {
-              this.$data.models = models.filter( (m) => m.deployed == '1'  )
-              this.$data.allmodels = models
-            }            // }
-          }).catch( err => console.log(`parsing model json error ${err} `) )
-        }).catch( err => console.log(`getting models error ${err} `) )
-      },
-      */
       drawRectStream(labelInRoi, width, cls, recWidth, recHeight,objectXMin, objectYMin, goodCtx, badCtx) {
          // return new Promise( (resolve, reject) => {
            console.log("draw rect promise")
@@ -2693,15 +2681,16 @@ ymin: 182 -->
                ctx.rect(objectXMin, objectYMin, recWidth, recHeight)
              } else {
                // ctx.fillStyle = "green";
-               // let color = this.$data.timelineOptions.color.scale[cls['label']]
-               let color = "green"
+
+               let color = this.$data.timelineOptions.color.scale[cls['label']]
+               // let color = "green"
                ctx.fillStyle = color
                ctx.strokeStyle = color
-               ctx.arc(objectXMin, objectYMin, 3, 0, 2 * Math.PI);
+               ctx.arc(objectXMin, objectYMin, 4, 0, 2 * Math.PI);
                ctx.stroke();
                ctx.fill();
-               ctx.font = "15px IBM Plex Sans";
-               ctx.fillText(cls['label'], objectXMin, objectYMin)
+               ctx.font = "600 15px IBM Plex Sans";
+               ctx.fillText(cls['label'], objectXMin + 5, objectYMin)
 
              }
              // resolve()

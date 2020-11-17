@@ -1,8 +1,6 @@
 # Analyze live video streams using IBM Maximo Visual Inspection
 
-In this Code Pattern we'll provide a web application that has the ability to capture frames from streaming cameras, and analyze each frame using IBM Maximo Visual Inspection. As analysis results are received, they can be grouped into positive or negative categories.
-
-This code pattern is targeted towards users who have access to live streams or CCTV cameras, and would like to apply object detection and image classification to their live camera feeds.
+In this Code Pattern we'll provide a web application that has the ability to generate a visual timeline of objects and actions detected in a video feed. This code pattern is targeted towards users who have access to live streams or CCTV cameras, and would like to apply object detection and image classification to their live camera feeds.
 
 <!-- When the reader has completed this Code Pattern, they will understand how to extract information from an IBM Maximo Visual Inspection instance as a CSV file, and how to visualize and filter the data within a web browser. -->
 
@@ -82,20 +80,20 @@ Follow these steps to setup and run this Code Pattern.
 ## 1. Clone repository
 
 ```
-git clone https://github.com/IBM/maximo-streaming-video-analysis
+git clone https://github.com/IBM/maximo-streaming-video-analysis -b timeline maximo-timeline
 ```
 
-Navigate to the project folder
+<!-- Navigate to the project folder
 ```
-cd maximo-streaming-video-analysis
-```
+cd maximo-timeline
+``` -->
 
 ## 2. Start application
 
 **Local Deployment**
 Install frontend dependencies
 ```
-cd maximo-streaming-video-analysis
+cd maximo-timeline
 cd frontend
 npm install
 ```
@@ -107,7 +105,7 @@ npm run serve
 
 In a separate terminal tab, install backend dependencies
 ```
-cd maximo-streaming-video-analysis
+cd maximo-timeline
 cd backend
 npm install
 ```
@@ -117,6 +115,7 @@ Start backend
 PORT=3000 npm start
 ```
 
+<!-- 
 **Docker**
 Start Backend
 ```
@@ -127,18 +126,19 @@ Start frontend
 ```
 # frontend
 docker run -it -p 8080:8080 kkbankol/maximo-live /bin/bash -c "cd /maximo-streaming-video-analysis/frontend && npm run serve"
-```
+``` -->
 
 ## 3. Configure web application
 Access the web application at [localhost:8080](localhost:8080).
 
 Click "Login" and provide the url, username, and password for the Maximo Visual Inspection instance. These credentials should have been provided in your welcome letter.
 
-<img src="https://i.imgur.com/bIiZkvs.png" />
+<img src="https://i.imgur.com/L9QdZ5b.png" />
 
-Next, click "Configure Model" in the Menu. Select your custom model. Then, select objects or classes associated with that model that you'd like to observe in the dashboard. These selected categories can be grouped as either negative or positive.
+Next, click "Configure Model" in the Menu. Select your custom model. Then, select objects or classes associated with that model that you'd like to observe in the dashboard.
+<!-- These selected categories can be grouped as either negative or positive. -->
 
-<img src="https://i.imgur.com/MYBSjPC.png" />
+<img src="https://i.imgur.com/t5UUsna.png" />
 
 After selecting the relevant model categories, we can then being streaming a video to the application for analysis. Currently, this app supports the following video sources. To stop a video from playing, click "Stop Stream".
 
@@ -153,16 +153,20 @@ After clicking "Submit" in the "Stream RTSP" or "Upload File" modal, the video s
 
 ## 4. Observe results
 
-Once the video begins playing, click the "Capture Frame" button to analyze a single frame with the configured model. Click the "Capture Frame Interval" button to analyze a frame every second for 10 seconds.
+Once the video begins playing, click the "Start Analysis of Feed" button to analyze a frame every second.
 
-As results are received that match the model configuration, they will then be rendered in the "Inference Results" section on the right hand side like so.
+As results are received that match the model configuration, they will then be rendered in the line graph section on the right hand side like so.
 
-<img src="https://i.imgur.com/irYp14I.png"/>
+<img src="https://i.imgur.com/GQYaq06.png"/>
 
-Clicking on one of the inference results will show a popup modal with detailed information for that particular inference, such as the identified class/object, heatmap/bounding boxes, and confidence score.
+Hovering over one of the inference results will show a popup modal with detailed information for that particular inference
+
+<img src="https://i.imgur.com/5zzxkA9.png"/>
+
+<!-- , such as the identified class/object, heatmap/bounding boxes, and confidence score.
 
 <img src="https://i.imgur.com/X0UnZhd.png" />
-
+ -->
 <!-- # Learn more -->
 
 <!-- * **Watson IOT Platform Code Patterns**: Enjoyed this Code Pattern? Check out our other [Watson IOT Platform Code Patterns](https://developer.ibm.com/?s=Watson+IOT+Platform). -->
