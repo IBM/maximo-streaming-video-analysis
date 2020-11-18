@@ -1,44 +1,106 @@
 /* eslint-disable */
-<template>
+<template style="background-color: rgb(240,240,240)">
+
+  <!-- <div id="app" style="background-color: #393939" > -->
+  <div id="app" ref="app" style="background-color: rgb(240,240,240)">
+    <!-- <head>
+      <meta name="theme-color" content="#FFFFFF">
+    </head> -->
+
+  <cv-header aria-label="Carbon header">
+  <cv-header-menu-button aria-label="Header menu" aria-controls="side-nav" />
+  <cv-header-name href="javascript:void(0)" prefix="IBM">
+    [Platform]
+  </cv-header-name>
+  <!-- <cv-header-nav aria-label="Carbon nav">
+      <cv-header-menu-item @click="showModal({'name': 'login-modal', 'title': 'Login'})">
+        Login
+      </cv-header-menu-item>
+      <cv-header-menu-item @click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'}) ; getModels()">
+        Configure Model
+      </cv-header-menu-item>
+      <cv-header-menu aria-label="Video" title="Configure Video">
+        <cv-header-menu-item @click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">
+          Configure Remote Stream
+        </cv-header-menu-item>
+        <cv-header-menu-item @click="showModal({'name': 'upload-modal'})">
+          Upload Video
+        </cv-header-menu-item>
+      </cv-header-menu>
+  </cv-header-nav> -->
+    <!-- <template v-slot:left-panels v-if="areLeftPanels"> -->
+
+  <cv-side-nav id="side-nav" ref="sidenav" rail>
+    <cv-side-nav-items>
+      <cv-header-side-nav-items divider>
+        <cv-header-menu-item href="javascript:void(0)">
+        Link 1
+      </cv-header-menu-item>
+      <cv-header-menu-item href="javascript:void(0)">
+        Link 2
+      </cv-header-menu-item>
+      <cv-header-menu-item href="javascript:void(0)">
+        Link 3
+      </cv-header-menu-item>
+      <cv-header-menu aria-label="Link 4" title="Link 4" :hover-toggle="false">
+        <cv-header-menu-item href="javascript:void(0)">
+          Submenu Link 1
+        </cv-header-menu-item>
+        <cv-header-menu-item href="javascript:void(0)">
+          Submenu Link 2
+        </cv-header-menu-item>
+        <cv-header-menu-item href="javascript:void(0)">
+          Submenu Link 3
+        </cv-header-menu-item>
+      </cv-header-menu>
+    </cv-header-side-nav-items>
+    <cv-side-nav-link @click="showModal({'name': 'login-modal', 'title': 'Login'})">
+      Login
+    </cv-side-nav-link>
+
+    <cv-side-nav-link @click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'}) ; getModels()">
+      Configure Model
+    </cv-side-nav-link>
+
+    <cv-side-nav-menu title="Load Video" expanded>
+      <cv-side-nav-menu-item @click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">
+        Configure Remote Stream
+      </cv-side-nav-menu-item>
+      <cv-side-nav-menu-item @click="showModal({'name': 'upload-modal'})">
+        Upload Video
+      </cv-side-nav-menu-item>
+    </cv-side-nav-menu>
+    <!-- <BrightnessContrast32 @click="toggleColor"/> -->
+    </cv-side-nav-items>
+  </cv-side-nav>
+    <!-- </template> -->
+    <!-- <template v-slot:right-panels v-if="areRightPanels">
+
+  </template> -->
+  </cv-header>
 
 
-  <div id="app" ui-background="#262626">
-    <div>
-      <h1>
-        IBM Maximo Visual Inspection
-      </h1>
-      <h2>
-        Time Series Analyzer
-      </h2>
-    </div>
 
-    <div id="menu" style="margin-top:40px; margin-bottom:40px">
-      <div>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'login-modal', 'title': 'Login'})">Login</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-model-modal', 'title': 'Configure Model'}) ; getModels()">Configure Model</CvButton>
+    <!-- dark gray #393939 -->
 
-        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showCVModal('configure-all-modal'); getModels()">Configuration</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showCVModal('test_cv_modal')">Test</CvButton> -->
-
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'configure-stream-modal', 'title': 'Stream RTSP'})">Configure Stream</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'upload-modal'})">Upload Video</CvButton>
-        <!-- <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-rule'})">Configure Alert</CvButton>
-        <CvButton style="margin: 0px 10px; text-align: center" type="default" v-on:click="showModal({'name': 'add-action'})">Configure Action</CvButton> -->
-
-        <!-- <div style="width:40%;margin: auto;margin-top:30px;text-align: center">
-        <CvSearch
-          v-model="search_query"
-          >
-        </CvSearch>
-        </div> -->
-      </div>
-    </div>
 
 
   <div class="bleed">
 
     <div class="bx--grid">
 
+    <div class="bx--row">
+      <div class="bx--col" style="margin-bottom:30px">
+          <div >
+            <h1>
+              IBM Maximo Visual Inspection
+            </h1>
+            <h2>
+              Time Series Analyzer
+            </h2>
+          </div>
+      </div>
+    </div >
 
     <div class="bx--row">
       <div class="bx--col" >
@@ -87,7 +149,7 @@
 
             <!-- Overlay canvas to draw ROIs -->
             <div style="z-index: 150;width: 100%;height:50%; position:absolute;right: 0; bottom: 0; left: 0;" ref="canvas_draw_div" id="canvas_draw_div">
-              <canvas @mousemove="hover"  @click="draw" style="width:100%;z-index: 150;" ref="canvas_draw" id="canvas_draw"></canvas>
+              <canvas @mousemove="hover" @mouseout="clearPreview"  @click="draw" style="width:100%;z-index: 150;" ref="canvas_draw" id="canvas_draw"></canvas>
               <!-- @mouseover="hover"  -->
             </div>
 
@@ -128,7 +190,9 @@ ymin: 182 -->
 
       <div class="bx--col" >
           <!-- <ccv-simple-bar-chart :data='timelineData' :options='timelineBarOptions'></ccv-simple-bar-chart> -->
-          <ccv-line-chart id="timelineChart" ref="timelineChart" :data='timelineData' :options='timelineOptions'></ccv-line-chart>
+          <!-- <cv-tile> -->
+            <ccv-line-chart style="background-color: rgb(240,240,240)" id="timelineChart" ref="timelineChart" :data='timelineData' :options='timelineOptions'></ccv-line-chart>
+          <!-- </cv-tile> -->
       </div>
 
       <!-- <template v-if="Object.keys(selectedModel).length > 0">
@@ -176,15 +240,16 @@ ymin: 182 -->
 
   <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
 
-    <div style="margin-bottom:10px">
-      <cv-button id="interval" style="width:30%;margin-right: 10px;" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
-      <cv-button style="width:30%;margin: 0px 10px;" type="default" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
-      <cv-button id="configure_interval" style="width:30%;margin-left: 10px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
-    </div>
+    <!-- <div style="margin-bottom:10px"> -->
+      <cv-button type="default" style="width:202px;text-align:center;padding-left:70px;height:60px;margin-right:15px" v-on:click="drawROI()">Draw ROI</cv-button>
+      <cv-button id="configure_interval" style="width:202px;text-align:center;padding-left:50px;margin-right:15px" v-on:click="showModal({'name': 'configure-interval-modal'})">Set Interval Of Feed</cv-button>
+      <cv-button id="interval" style="width:202px;text-align:center;padding-left:50px;margin-right:15px" v-on:click="intervalCapture()">Start Analysis Of Feed</cv-button>
+      <cv-button type="default" style="width:202px;text-align:center;padding-left:50px;margin-right:15px" v-on:click="stopStream">Stop Analysis Of Feed</cv-button>
+    <!-- </div> -->
 
-    <div style="margin-bottom:10px">
-      <cv-button  type="default" v-on:click="drawROI()">Draw ROI</cv-button>
-    </div>
+    <!-- <div style="margin-bottom:10px"> -->
+
+    <!-- </div> -->
   </div>
 
   <!-- <div class="bx--row" style="align-items: center; justify-content: center;margin-top:50px">
@@ -688,7 +753,6 @@ ymin: 182 -->
     </modal>
   </div>
 
-
 </template>
 
 <script>
@@ -822,113 +886,17 @@ ymin: 182 -->
     data() {
       return {
         markType: "dot",
+        styleObject: {
+          color: 'red',
+          "background-color": "#393939",
+          border: "dotted"
+        },
+        timelineData: [],
         // timelineData: [
         // {"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":0,"date":"10/5/2020 1:10:30 PM","group":"employee"},{"value":7,"date":"10/5/2020 1:10:30 PM","group":"beltloader_empty"},{"value":1,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_disconnected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"jetbridge_connected"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"cargo_open"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"aircraft"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"wheel_chocked"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_inuse"},{"value":null,"date":"10/5/2020 1:10:30 PM","group":"beltloader_baggage"}],
         // timelineData: [],
-        timelineData: [
-        		{
-        				"group": "Dataset 1",
-        				"date": "2019-01-01T08:00:00.000Z",
-        				"value": 1,
-        		},
-        		{
-        				"group": "Dataset 1",
-        				"date": "2019-01-05T08:00:00.000Z",
-        				"value": 1,
-        		},
-        		{
-        				"group": "Dataset 1",
-        				"date": "2019-01-08T08:00:00.000Z",
-        				"value": null,
-        		},
-        		{
-        				"group": "Dataset 1",
-        				"date": "2019-01-13T08:00:00.000Z",
-        				"value": 1,
-        		},
-        		{
-        				"group": "Dataset 1",
-        				"date": "2019-01-17T08:00:00.000Z",
-        				"value": 1,
-        		},
-        		{
-        				"group": "Dataset 2",
-        				"date": "2019-01-02T08:00:00.000Z",
-        				"value": 2
-        		},
-        		{
-        				"group": "Dataset 2",
-        				"date": "2019-01-06T08:00:00.000Z",
-        				"value": 2
-        		},
-        		{
-        				"group": "Dataset 2",
-        				"date": "2019-01-08T08:00:00.000Z",
-        				"value": 2
-        		},
-        		{
-        				"group": "Dataset 2",
-        				"date": "2019-01-15T08:00:00.000Z",
-        				"value": 2
-        		},
-        		{
-        				"group": "Dataset 2",
-        				"date": "2019-01-19T08:00:00.000Z",
-        				"value": 2
-        		},
-        		{
-        				"group": "Dataset 3",
-        				"date": "2019-01-01T08:00:00.000Z",
-        				"value": 3
-        		},
-        		{
-        				"group": "Dataset 3",
-        				"date": "2019-01-05T08:00:00.000Z",
-        				"value": null
-        		},
-        		{
-        				"group": "Dataset 3",
-        				"date": "2019-01-08T08:00:00.000Z",
-        				"value": 3
-        		},
-        		{
-        				"group": "Dataset 3",
-        				"date": "2019-01-13T08:00:00.000Z",
-        				"value": 3
-        		},
-        		{
-        				"group": "Dataset 3",
-        				"date": "2019-01-17T08:00:00.000Z",
-        				"value": 3
-        		},
-        		{
-        				"group": "Dataset 4",
-        				"date": "2019-01-02T08:00:00.000Z",
-        				"value": 4
-        		},
-        		{
-        				"group": "Dataset 4",
-        				"date": "2019-01-06T08:00:00.000Z",
-        				"value": 4
-        		},
-        		{
-        				"group": "Dataset 4",
-        				"date": "2019-01-08T08:00:00.000Z",
-        				"value": 4
-        		},
-        		{
-        				"group": "Dataset 4",
-        				"date": "2019-01-15T08:00:00.000Z",
-        				"value": 4
-        		},
-        		{
-        				"group": "Dataset 4",
-        				"date": "2019-01-19T08:00:00.000Z",
-        				"value": null
-        		}
-        ],
   			timelineOptions: {
-        		"title": "Detected Objects",
+        		// "title": "Detected Objects",
             // "color": {},
             "timeScale": {
               "timeIntervalFormats": {
@@ -1361,7 +1329,7 @@ ymin: 182 -->
       console.log(`${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/scripts/tracking-min.js`)
     },
     mounted() {
-
+      this.toggleColor()
       // this.$data.modelConfigs = JSON.parse(localStorage.getItem('modelConfigs'))
       this.video = this.$refs.video;
       // this.$refs.video.addEventListener('ended', this.restartStream())
@@ -1439,7 +1407,35 @@ ymin: 182 -->
       // this.getInferenceDetails();
     },
     methods: {
+      toggleColor() {
+        // change color of buttons, header,
+        this.$refs.app.style.backgroundColor = "#393939"
+        let tiles = document.getElementsByClassName('cv-tile') //document.querySelectorAll('cv-tile')
+        // tiles.map(tile => tile.style.)
+        tiles[0].style.backgroundColor = "#393939"
+        console.log(tiles)
+        let title = document.querySelectorAll('h1')[0]
+        let subTitle = document.querySelectorAll('h2')[0]
+        title.style.color = "white"
+        subTitle.style.color = "white"
 
+        let chart = this.$refs.timelineChart.$el
+        console.log("chart")
+        console.log(chart)
+        chart.style.backgroundColor = "#393939"
+
+        this.$refs.sidenav.$el.style.backgroundColor = "#000000"
+        let opts = document.getElementsByClassName('bx--side-nav__link-text')
+        Array.from(opts).map(opt => opt.style.color = "white")
+
+        let opts1 = document.getElementsByClassName('bx--side-nav__submenu')
+        opts1[0].style.color = "white"
+        document.body.style.backgroundColor = "#393939"
+
+        // let chart = this.
+        // console.log("black")
+        // console.log(black)
+      },
       parseTimeline(){
         var labelsToIdx = {}
         // {
@@ -1475,6 +1471,7 @@ ymin: 182 -->
                 date: date,
                 timestamp: inference['timestamp'],
                 group: cls.label,
+                index: iIdx,
                 imageUrl: inference['canvas_url'],
                 key: cls.label
               }
@@ -1618,6 +1615,11 @@ ymin: 182 -->
         console.log(`mouseY ${mouseY}`)
 
       },
+      clearPreview() {
+        var canvas = this.$refs.canvas_cursor
+        var ctx = canvas.getContext("2d")
+        ctx.clearRect(0,0, canvas.width, canvas.height)
+      },
       hover(ev) {
         var canvas = this.$refs.canvas_cursor
         console.log("hovering canvas")
@@ -1666,12 +1668,16 @@ ymin: 182 -->
           console.log("updating cursor")
           ctx.clearRect(0,0, canvas.width, canvas.height)
           ctx.beginPath();
-          ctx.strokeStyle = "white"
+          ctx.strokeStyle = "red"
           ctx.arc(mouseX, mouseY, 3, 0, 2 * Math.PI);
-          ctx.fillStyle = "white";
+          ctx.fillStyle = "red";
           ctx.fill();
-          ctx.font = '18px IBM Plex Sans';
-          ctx.fillText(`Click to begin drawing ROI`, mouseX + 10, mouseY + 5)
+          ctx.font = '600 18px IBM Plex Sans';
+          // TODO, only show this message when user clicks Draw ROI
+
+          if (Object.keys(this.$data.recStart).length < 1 ) {
+            ctx.fillText(`Click to begin drawing ROI`, mouseX + 10, mouseY + 5)
+          }
           ctx.stroke();
         }
       },
@@ -3330,6 +3336,8 @@ ymin: 182 -->
 </script> -->
 
 
+
+
 <style>
   #app {
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -3367,9 +3375,13 @@ ymin: 182 -->
 
 </style>
 
-<!-- <style lang="scss">
+<style lang="scss">
 @import "./styles/carbon";
-</style> -->
+
+/* @import '@carbon/themes/scss/themes';
+@include carbon--theme($carbon--theme--g90); */
+
+</style>
 
 <!-- <style lang="scss" scoped>
   .md-card {

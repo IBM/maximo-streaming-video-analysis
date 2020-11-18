@@ -30,19 +30,20 @@ import Router from 'vue-router'
 import "carbon-components/css/carbon-components.min.css";
 import CarbonComponentsVue from '@carbon/vue';
 // let carbonLibs = ["CvList", "CvModal", "CvSelect", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvAccordion", "CvAccordionItem", "CvButton", "CvTag", "CvStructuredList"]
-Vue.use(CarbonComponentsVue, ["CvDataTableSkeleton", "CvInteractiveTooltip", "CvCheckbox", "CvSlider", "CvNumberInput" ,"CvInlineLoading", "CvModal", "CvTag", "CvTile", "CvSelect", "CvMultiSelect","CvSelectOption", "CvSelectOptGroup", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvButton", "CvForm", "CvTextArea", "CvTextInput","CvSearch"]);
-
-
+Vue.use(CarbonComponentsVue, ["CvDataTableSkeleton", "CvInteractiveTooltip", "CvCheckbox", "CvSlider", "CvNumberInput" ,"CvInlineLoading", "CvModal", "CvTag", "CvTile", "CvSelect", "CvMultiSelect","CvSelectOption", "CvSelectOptGroup", "CvFileUploader", "CvDataTable", "CvDataTableCell", "CvDataTableRow", "CvButton", "CvForm", "CvTextArea", "CvTextInput","CvSearch", "CvHeaderNav", "CvHeader", "CvHeaderMenuItem", "CvHeaderName", "CvSideNav", "CvSideNavItems", "CvHeaderSideNavItems", "CvHeaderMenu", "CvHeaderMenuButton", "CvSideNavLink", "CvSideNavMenuItem", "CvSideNavMenu"]);
 
 import { CarbonIconsVue } from '@carbon/icons-vue';
 import CalendarSettings32 from '@carbon/icons-vue/es/calendar--settings/32';
 import Settings32 from '@carbon/icons-vue/es/settings/32';
+import BrightnessContrast32 from '@carbon/icons-vue/es/brightness-contrast/32';
 Vue.use(CarbonIconsVue, {
     components: {
       CalendarSettings32,
-      Settings32
+      Settings32,
+      BrightnessContrast32
     }
 })
+
 
 // <CalendarSettings32 />
 import "./ibm-plex-font.css";
@@ -50,24 +51,15 @@ import "@carbon/charts/styles.css";
 import chartsVue from "@carbon/charts-vue";
 Vue.use(chartsVue);
 
-/*
-import {CvModal, CvList, CvSelect, CvFileUploader, CvDataTable, CvAccordion, CvAccordionItem, CvButton} from "@carbon/vue"
-, */
+import {
+  g90,
+  white
+} from '@carbon/themes';
+Vue.use(g90)
 
-// */
-
-// import InfTable from './components/InfTable.vue';
-// Vue.use(InfTable)
-// Vue.component('inf-table', InfTable)
 
 Vue.use(Drag)
 Vue.component('drag', Drag)
-// Vue.component('v-select', vSelect)
-
-// Vue.component("vuetable", Vuetable);
-// Vue.component("vuetable-pagination", VuetablePagination);
-// Vue.component("vuetable-pagination-dropdown", VuetablePaginationDropDown);
-// Vue.component("vuetable-pagination-info", VuetablePaginationInfo);
 
 Vue.config.productionTip = false
 
@@ -80,6 +72,12 @@ Vue.component('Plotly', Plotly)
 Object.defineProperty(Vue.prototype, '$JSZip', { value: JSZip });
 Object.defineProperty(Vue.prototype, '$jsPDF', { value: jsPDF });
 Vue.use(JSZip, "$JSZip")
+
+
+import { black, blue, warmGray } from '@carbon/colors';
+
+import '@carbon/charts/styles-g100.css'
+// import '@carbon/charts/styles.css'
 
 
 // import Youtube from './components/Youtube.js'
