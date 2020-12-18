@@ -51,9 +51,11 @@ Vue.use(CarbonComponentsVue, ["CvDataTableSkeleton", "CvInteractiveTooltip", "Cv
 import { CarbonIconsVue } from '@carbon/icons-vue';
 import CalendarSettings32 from '@carbon/icons-vue/es/calendar--settings/32';
 import Settings32 from '@carbon/icons-vue/es/settings/32';
+import Restart32 from '@carbon/icons-vue/es/restart/32';
 Vue.use(CarbonIconsVue, {
     components: {
       CalendarSettings32,
+      Restart32,
       Settings32
     }
 })

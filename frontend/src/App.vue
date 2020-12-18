@@ -41,11 +41,20 @@
 
         </div>
         <div style="width: 120%;height:480px;">
+
+          <template v-if="showRestart">
+            <div id="restartView" @click="restartStream()" style="width: 100%;height:60%;position:absolute;right: 0; top: 0; left: 0;margin: auto;background-color:rgb(217,217,217);z-index:200">
+              <div style="margin-top:140px;bottom:50%">
+                <Restart32 style="width: 25%;height:25%;top:50%;bottom:50%"/>
+                <p>Restart Video</p>
+              </div>
+            </div>
+          </template>
           <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
             <video muted loop controls @ended="restartStream()" style="z-index: 10;width: 100%;height:480px;" crossorigin="anonymous" ref="video" id="video" width="640" height="480" autoplay></video>
           </div>
           <div style="visibility: hidden;width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
-            <video muted loop controls @ended="restartStream()"  style="z-index: 5;width: 100%;height:480px;" crossorigin="anonymous" ref="remote_video" id="remote_video"  height="480" autoplay></video>
+              <video muted @ended="askRestartStream()"  style="z-index: 5;width: 100%;" crossorigin="anonymous" ref="remote_video" id="remote_video"  autoplay></video>
           </div>
           <div style="width: 100%;height:100%;position:absolute;top: 10px; right: 0; bottom: 0; left: 0;margin: auto;">
             <canvas style="width: 100%;height:480px;z-index: 9;visibility: hidden" crossorigin="anonymous" ref="stream_canvas" id="stream_canvas"  width="640" height="480" ></canvas>
@@ -209,12 +218,31 @@
     <div>
       <modal name="upload-modal" height="auto" style="z-index: 3000;">
           <h2 align="center"> Upload File </h2>
-          <div style="margin-left: auto; margin-right: auto;width: 75%; padding: 10px;">
+          <div @drop="checkFileTypes" style="margin-left: auto; margin-right: auto;width: 75%; padding: 10px;">
             <cv-file-uploader
               :accept="['.mp4']"
               :multiple=false
               ref="fileUploader">
             </cv-file-uploader>
+            <cv-checkbox
+              label="Repeat Video Playback"
+              @change="adjustVideoRepeat"
+              v-model="staticImageRepeat"
+              :checked="staticImageRepeat"
+              >
+            </cv-checkbox>
+
+            <template v-if="staticImageUpload">
+              <div>
+                <cv-number-input
+                  style="margin-bottom:20px"
+                  label="Seconds between each frame"
+                  v-model="slideshowInterval"
+                  :step="slideshowIntervalStep"
+                  min=1>
+                </cv-number-input>
+              </div>
+            </template>
           </div>
           <div>
             <cv-button @click="uploadFile() ; hideModal({name: 'upload-modal'})">Submit</cv-button>
@@ -521,6 +549,13 @@
 
     data() {
       return {
+        proxyServerIp: process.env.VUE_APP_PROXY_IP || `${window.location.protocol}//${window.location.hostname}`,
+        proxyServerPort: process.env.VUE_APP_PROXY_PORT || 3000,
+        showRestart: false,
+        slideshowInterval: 1,
+        slideshowIntervalStep: 1,
+        staticImageUpload: false,
+        staticImageRepeat: false,
         loadingText: "",
         loadingState: "none",
         form: {
@@ -793,6 +828,34 @@
       // this.getInferenceDetails();
     },
     methods: {
+      adjustVideoRepeat(ev){
+        console.log("adjusting video repeat")
+        console.log(ev)
+        // this.$refs.video.loop = ev
+        this.$data.staticImageRepeat = ev
+        // if (!ev) {
+        //   console.log("adding function to stop video")
+        //   this.$refs.video.onended = function() {
+        //     console.log("stopping video")
+        //     this.$refs.video.pause()
+        //   }
+        // } else {
+        //   this.$refs.video.onended = null
+        // }
+      },
+      checkFileTypes(){
+        console.log("checking file type")
+        let files = this.$refs.fileUploader.internalFiles
+        console.log(files)
+        const isImage = (file) => ((file.file.type.includes('png')) || (file.file.type.includes('jpg')) || (file.file.type.includes('jpeg')));
+        let staticImages = files.some(isImage)
+        console.log("staticImages")
+        console.log(staticImages)
+        if (staticImages) {
+          this.$data.staticImageUpload = true
+          this.$refs.uploadModal = ""
+        }
+      },
       showTooltip(ev) {
         console.log(ev)
       },
@@ -828,6 +891,29 @@
         return `${parsedDate.getYear()}/${parsedDate.getMonth()}/${parsedDate.getDay()} ${parsedDate.getHours()}:${parsedDate.getMinutes()}:${parsedDate.getSeconds()}`
 
       },
+      mergeImagesToVideo(stillImages, formData) {
+        // this.$data.stillImages
+        let headers = {
+          "x-interval": this.$data.slideshowInterval
+          // "x-repeat": staticImageRepeat
+        }
+        let options = {
+          method: "POST",
+          headers: headers,
+          body: formData
+        }
+        let url = `${this.$data.proxyServerIp}:${this.$data.proxyServerPort}/mergeframes`
+        console.log(url)
+        fetch(url, options).then( (res) => {
+          this.$data.staticImageUpload = false
+          res.blob().then( (vid) => {
+             console.log("received merged video")
+             let localUrl = URL.createObjectURL(vid)
+             this.$refs.remote_video.src = localUrl
+             console.log(localUrl)
+          })
+        })
+      },
       uploadFile() {
         this.$data.streamingType = "file"
         this.$data.isStreaming = true
@@ -835,23 +921,62 @@
         this.$refs.remote_video.style.visibility = "visible"
         this.$refs.remote_video.style['z-index'] = 2000
         this.$data.videoPlaying = true
+        var formData = new FormData()
 
-        let file = this.$refs.fileUploader.internalFiles[0].file
-        console.log(this.$refs.fileUploader.internalFiles)
-        console.log(file)
-        let localUrl = window.URL.createObjectURL(file)
-        this.$data.localFileSrc = localUrl
-        this.$refs.remote_video.src = localUrl
+        var files = this.$refs.fileUploader.internalFiles
+        var stillImages = []
+
+        files.map( (file, idx) =>  {
+          console.log(file)
+          let fileType = file.file.type
+          let isImage = ((fileType.includes('png')) || (fileType.includes('jpg')) || (fileType.includes('jpeg')))
+          if (isImage) {
+            console.log("handling still image")
+            console.log(file)
+            let localUrl = window.URL.createObjectURL(file.file)
+            console.log(localUrl)
+            console.log(file)
+            this.$data.localFileSrc = localUrl
+            // this.$refs.remote_video.poster = localUrl
+            // this.$data.stillImages.push(file.file)
+            stillImages.push(file.file)
+            formData.append(`file${idx}`, file.file, file.file.name)
+            if (idx == (files.length - 1) ) {
+              console.log("merging still images")
+              // post still images to backend to create video/slideshow
+              this.mergeImagesToVideo(stillImages, formData)
+
+            }
+          } else {
+            console.log("video uploaded, playing")
+            let localUrl = window.URL.createObjectURL(file.file)
+            this.$data.localFileSrc = localUrl
+            this.$refs.remote_video.src = localUrl
+            this.adjustDrawCanvas()
+          }
+        })
+      },
+      askRestartStream() {
+        console.log(this.$data.staticImageRepeat)
+        if (this.$data.staticImageRepeat) {
+          this.restartStream()
+        } else {
+          this.$data.showRestart = true
+        }
       },
       restartStream() {
-        console.log("end event triggered, restarting stream")
-        console.log("this.$data.videoPlaying")
-        console.log(this.$data.videoPlaying)
-        if ((this.$data.videoPlaying) && (this.$data.streamingType == 'file')) {
+        console.log("restarting stream")
+        this.$data.showRestart = false
+        if ((this.$data.videoPlaying) && (this.$data.streamingType == 'file') ) {
           console.log('restarting stream')
           // this.uploadFile()
-          console.log(this.$refs.fileUploader.internalFiles)
-          this.$refs.remote_video.src = this.$data.localFileSrc
+          // console.log(this.$refs.fileUploader.internalFiles)
+          console.log(this.$data.localFileSrc)
+          this.$refs.remote_video.pause();
+          this.$refs.remote_video.currentTime = 0;
+          this.$refs.remote_video.play();
+          this.$data.showRestart = false
+          // this.$refs.remote_video.src = this.$data.localFileSrc
         }
         else if ((this.$data.videoPlaying) && (this.$data.streamingType == 'youtube')) {
           this.stream()
@@ -1251,7 +1376,14 @@
           this.captures.push(canvas_url);
 
           // console.log(`canvas url ${canvas_url}`)
-          this.canvas.toBlob(function(blob){ that.submitInference(blob, canvas_url)}, 'image/png'); // JPEG at 95% quality
+          if (canvas_url) {
+            this.captures.push(canvas_url);
+            this.canvas.toBlob(function(blob){ that.submitInference(blob, canvas_url, width, height)}, 'image/png'); // JPEG at 95% quality
+          } else {
+            console.log("no image detected")
+            // TODO, if no image found after x tries, stop analyzing
+          }
+          // this.canvas.toBlob(function(blob){ that.submitInference(blob, canvas_url)}, 'image/png'); // JPEG at 95% quality
 
           // this.canvas.toBlob(
           //   blob => this.submitInference(blob, canvas_url)

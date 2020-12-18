@@ -127,6 +127,76 @@ var splitVideo = function(vid_path) {
   })
 }
 
+const { exec } = require("child_process");
+
+app.use('/mergeframes', function(req, res) {
+  console.log(req)
+  // console.log(Object.keys(req))
+  var outputFile = './out.mp4'
+  var output = fs.createWriteStream(outputFile);
+  // var textFile = fs.createWriteStream('./input.txt');
+  //var cmd = "ffmpeg -r 1/5 -y -r 1/5 -f concat -safe 0  -i input.txt -c:v libx264 -vf fps=25 -pix_fmt yuv420p out.mp4"
+  var cmd = "ffmpeg -y -f concat -safe 0 -i input.txt -vsync vfr -pix_fmt yuv420p out.mp4"
+  var fileContents = ""
+  // // videoCodec
+  // var cmd = ffmpeg()
+  // var inputOptions = ["-r", "60", "-f", "image2", "-s", "1920x1080"] //,  "-crf", "25", "-pix_fmt", "yuv420p"] // "-vcodec", "libx264",
+  // var outputOptions =  ['-vcodec libx264 -crf 25  -pix_fmt yuv420p']
+  let files = req.files
+  console.log(files)
+  var headers = req.headers
+  console.log("headers")
+  console.log(headers)
+  if (Object.keys(headers).includes("x-interval")) {
+    var interval = headers["x-interval"]
+  } else {
+    var interval = "1"
+  }
+  console.log(`interval ${interval}`)
+  var filenames = Object.keys(files)
+  filenames.map( (name, idx) => {
+    let file = files[name]
+    console.log(`handling file ${file.fieldName}`)
+    let path = file.path
+    console.log(`handling image at path ${path}`)
+    // inputOptions.push('-i', path)
+    fileContents += `file '${path}'\nduration ${interval}\n`
+    console.log(`${idx} / ${filenames.length -1}`)
+    // cmd.addInput(path) //fs.createReadStream( path ))
+    // cmd.addInput('/var/folders/2k/hljc8qsn3fq3j8rkh4g9dy6m0000gn/T/i99pMRRaShDBJBCcHgbOaTjT.png')
+    if (idx == (filenames.length - 1)) {
+      fileContents += `file '${path}'`
+      console.log("inputs added, merging")
+      fs.writeFile('./input.txt', fileContents, function (err) {
+        if (err) throw err;
+        else {
+          // var cmd = spawn("ffmpeg", [cmdArgs.split(' ')]);
+          exec(cmd, (error, stdout, stderr) => {
+            // if ( error || stderr ) {
+            //   console.log("error with ffmpeg merge")
+            //   console.log(`${error}`)
+            //   console.log(`${stderr}`)
+            //   res.sendStatus(500)
+            // } else {
+              let filePath = process.cwd() + '/' + outputFile
+              console.log(`done with file, returning ${filePath}`)
+              res.sendFile(filePath)
+            // }
+          })
+
+
+        }
+      });
+
+      // console.log(inputOptions)
+      // cmd.inputOptions(inputOptions).output(output).outputOptions(outputOptions).on('end', function() {
+      //   console.log('Finished merging');
+      //   console.log(output);
+      // }).run();
+    }
+  })
+})
+
 app.use('/proxypost', function(req, res) {
   // console.log(upload)
   console.log("handling post request")
