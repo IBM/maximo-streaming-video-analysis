@@ -43,7 +43,7 @@
         <div style="width: 120%;height:480px;">
 
           <template v-if="showRestart">
-            <div id="restartView" @click="restartStream()" style="width: 100%;height:60%;position:absolute;right: 0; top: 0; left: 0;margin: auto;background-color:rgb(217,217,217);z-index:200">
+            <div id="restartView" @click="restartStream()" style="opacity: 0.5;width: 100%;height:60%;position:absolute;right: 0; top: 0; left: 0;margin: auto;background-color:rgb(217,217,217);z-index:200">
               <div style="margin-top:140px;bottom:50%">
                 <Restart32 style="width: 25%;height:25%;top:50%;bottom:50%"/>
                 <p>Restart Video</p>
@@ -910,6 +910,8 @@
              console.log("received merged video")
              let localUrl = URL.createObjectURL(vid)
              this.$refs.remote_video.src = localUrl
+             this.adjustRestartPrompt()
+
              console.log(localUrl)
           })
         })
@@ -952,9 +954,12 @@
             let localUrl = window.URL.createObjectURL(file.file)
             this.$data.localFileSrc = localUrl
             this.$refs.remote_video.src = localUrl
-            this.adjustDrawCanvas()
+            // this.adjustDrawCanvas()
           }
         })
+      },
+      adjustRestartPrompt() {
+
       },
       askRestartStream() {
         console.log(this.$data.staticImageRepeat)
@@ -985,10 +990,10 @@
           this.stream()
         } else {
           console.log("stream stopped by user")
-
         }
       },
       stream() {
+        this.$data.showRestart = false
         // var Youtube = new this.$Youtube()
         // console.log("Youtube")
         // console.log(Youtube)
@@ -1364,7 +1369,9 @@
             var context = this.canvas.getContext("2d").drawImage(this.$refs.remote_video, 0, 0, 640, 480);
             // this.$refs.remote_video.style.border = "dotted"
             var canvas_url = canvas.toDataURL("image/png")
-
+            if (this.$refs.remote_video.paused) {
+              return
+            }
           } else { // webcam
             console.log("sampling webcam video")
             this.$refs.stream_canvas.style.visibility = 'hidden'
@@ -1372,13 +1379,16 @@
             this.canvas = this.$refs.canvas;
             var context = this.canvas.getContext("2d").drawImage(this.video, 0, 0, 640, 480);
             var canvas_url = canvas.toDataURL("image/png")
+            if (this.video.paused) {
+              return
+            }
           }
           this.captures.push(canvas_url);
 
           // console.log(`canvas url ${canvas_url}`)
           if (canvas_url) {
             this.captures.push(canvas_url);
-            this.canvas.toBlob(function(blob){ that.submitInference(blob, canvas_url, width, height)}, 'image/png'); // JPEG at 95% quality
+            this.canvas.toBlob(function(blob){ that.submitInference(blob, canvas_url)}, 'image/png'); // JPEG at 95% quality
           } else {
             console.log("no image detected")
             // TODO, if no image found after x tries, stop analyzing
