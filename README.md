@@ -1,3 +1,7 @@
+# WARNING: This repository is no longer maintained
+
+> This repository will not be updated. The repository will be kept available in read-only mode.
+
 # Analyze live video streams using IBM Maximo Visual Inspection
 
 In this Code Pattern we'll provide a web application that has the ability to capture frames from streaming cameras, and analyze each frame using IBM Maximo Visual Inspection. As analysis results are received, they can be grouped into positive or negative categories.
